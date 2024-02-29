@@ -1,0 +1,17 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+allow-hotplug ens3
+iface ens3 inet manual
+
+auto br0
+iface br0 inet static
+    bridge_ports ens3
+    address 10.20.30.40/24
+    gateway 10.20.30.1
+    hwaddress $(cat /sys/class/net/ens3/address)

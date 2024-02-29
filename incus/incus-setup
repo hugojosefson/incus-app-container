@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+####################################################################################################
+# Installs incus on a fresh Debian 12.5 system
+####################################################################################################
+
+# Prompts the user for input, using the first argument as the prompt and the second argument as the
+# default value. If the second argument is not given, the default value will be an empty string.
+prompt_for() {
+  local prompt default value
+  prompt="${1}"
+  default="${2:-""}"
+  read -rp "${prompt} [${default}]: " value
+  echo "${value:-"${default}"}"
+}
+
+  POOL_DISK="${POOL_DISK:-"$(  prompt_for "POOL_DISK:   empty block device for the storage pool"    "/dev/vdb")"}"
+BRIDGE_NAME="${BRIDGE_NAME:-"$(prompt_for "BRIDGE_NAME: name of the network bridge device"          "br0"     )"}"
+BRIDGE_CIDR="${BRIDGE_CIDR:-"$(prompt_for "BRIDGE_CIDR: ip/net or 'dhcp' to use for ${BRIDGE_NAME}" "dhcp"    )"}"
+
+# Prints a message to stderr and exits with a non-zero status which is optionally given as the first
+# argument. If the first argument is not a number, the exit status will be 1.
+die() {
+  local code
+  local message
+  code="${1:-""}"
+  if [[ -n "${code}" ]] && [[ "${code}" =~ ^[0-9]+$ ]]; then
+    shift
+  else
+    code=1
+  fi
+  message="${*:-"An error occurred"}"
+  echo "${message}" >&2
+  exit "${code}"
+}
+
+# check that wipefs reports nothing to wipe
+is_block_device_already_wiped() {
+  local block_device output result
+  block_device="${1}"
+  output="$(wipefs --no-act --all "${block_device}")"
+  result=$?
+
+  if [[ ${result} -ne 0 ]]; then
+    echo "wipefs failed with exit code ${result}" >&2
+    return 1
+  fi
+
+  ! echo "${output}" | grep -q "${block_device}"
+}
+
+# Returns true if the script is running as root, false otherwise
+is_root() {
+  [[ ${EUID} -eq 0 ]]
+}
+
+# Returns true if the operating system is the given ID and version, according to /etc/os-release, otherwise false
+is_os_id_and_version() {
+  local os_id os_version
+  os_id="${1}"
+  os_version="${2}"
+  [[ -f /etc/os-release ]] && grep -q "ID=${os_id}" /etc/os-release && grep -q "VERSION_ID=\"${os_version}\"" /etc/os-release
+}
+
+# Checks that the preconditions for running this script are met, and exits with an error message if they are not.
+# Ensures required packages are installed, and if not, installs them.
+check_preconditions() {
+  is_root \
+  || die "This script must be run as root"
+
+  is_os_id_and_version debian 12 \
+  || die "This script must be run on Debian 12"
+
+  is_block_device_already_wiped "${POOL_DISK}" \
+  || die "Block device ${POOL_DISK} must be wiped before running this script.
+
+Try wipe it now:
+wipefs --force --all ${POOL_DISK} && reboot
+
+If you *really* want to start over:
+rm -rf ~/.config/incus && apt purge -y --purge $(get_incus_packages | xargs echo) && wipefs --force --all ${POOL_DISK} && reboot
+
+Then try running this script again, after reboot :)
+"
+
+  ensure_installed_packages \
+    curl \
+    gnupg \
+    ipcalc \
+    lvm2 \
+    thin-provisioning-tools \
+    wget
+}
+
+# Calculates the minimum IP address in the given CIDR
+calculate_cidr_min() {
+  local cidr
+  cidr="${1}"
+  ipcalc --nocolor --nobinary "${cidr}" | awk '/^HostMin:/{print $2}'
+}
+
+# Converts the dhcp network interface to a bridge, and restarts the networking service
+convert_to_bridge() {
+  if [[ "${BRIDGE_CIDR}" == "dhcp" ]]; then
+    sed -E "s|^iface ([^ ]+) inet dhcp$|iface \1 inet manual\n\nauto ${BRIDGE_NAME}\niface ${BRIDGE_NAME} inet dhcp|" \
+    -i /etc/network/interfaces
+  else
+    sed -E "s|^iface ([^ ]+) inet dhcp$|iface \1 inet manual\n\nauto ${BRIDGE_NAME}\niface ${BRIDGE_NAME} inet static\nbridge_ports \1\naddress ${BRIDGE_CIDR}\ngateway $(calculate_cidr_min "${BRIDGE_CIDR}")\nhwaddress \\\$(cat /sys/class/net/\1/address)|" \
+    -i /etc/network/interfaces
+  fi
+
+  systemctl restart networking
+}
+
+# Adds the zabbly repository to the system, and updates the package list
+add_zabbly_repo() {
+  # check the fingerprint of the key automatically, without user interaction
+  local key
+  key="$(curl -fsSL https://pkgs.zabbly.com/key.asc)"
+  echo "${key}" \
+  | gpg --show-keys --fingerprint \
+  | grep -q "4EFC 5906 96CB 15B8 7C73  A3AD 82CC 8797 C838 DCFD" \
+  || die "The fingerprint of the zabbly repository key does not match the expected value"
+
+  # save the key locally
+  mkdir -p /etc/apt/keyrings/
+  echo "${key}" > /etc/apt/keyrings/zabbly.asc
+
+  # add the stable repository
+  sh -c 'cat <<EOF > /etc/apt/sources.list.d/zabbly-incus-stable.sources
+Enabled: yes
+Types: deb
+URIs: https://pkgs.zabbly.com/incus/stable
+Suites: $(. /etc/os-release && echo ${VERSION_CODENAME})
+Components: main
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/zabbly.asc
+
+EOF'
+
+  # update the package list
+  apt-get update
+}
+
+# Installs incus and its UI
+install_incus() {
+  add_zabbly_repo
+  ensure_installed_packages \
+    incus \
+    incus-ui-canonical
+}
+
+# Returns the IP address of the bridge
+get_bridge_ip() {
+  ip -4 -o addr show "${BRIDGE_NAME}" | awk '{print $4}' | cut -d/ -f1
+}
+
+# Returns the preseed for incus
+get_incus_preseed() {
+  cat <<EOF
+config:
+  core.https_address: $(get_bridge_ip):8443
+networks: []
+storage_pools:
+- config:
+    source: ${POOL_DISK}
+  description: ""
+  name: default
+  driver: lvm
+profiles:
+- config: {}
+  description: ""
+  devices:
+    eth0:
+      name: eth0
+      nictype: bridged
+      parent: ${BRIDGE_NAME}
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+  name: default
+projects: []
+cluster: null
+EOF
+}
+
+# Configures incus using the preseed provided by get_incus_preseed, unless the --dry-run or -n option
+# is given, in which case the preseed is printed to stdout and no configuration is performed.
+configure_incus() {
+  local dry_run
+  dry_run=false
+  if [[ "${1:-""}" == "--dry-run" ]] || [[ "${1:-""}" == "-n" ]]; then
+    dry_run=true
+  fi
+
+  if "${dry_run}"; then
+    get_incus_preseed
+    return
+  fi
+
+  get_incus_preseed \
+  | incus admin init --preseed --verbose
+}
+
+get_incus_packages() {
+  apt-cache search '^incus' | cut -d ' ' -f 1
+}
+
+is_installed_package() {
+  local package_name
+  package_name="${1}"
+  dpkg -l "${package_name}" 2>/dev/null | grep -q ^ii
+}
+
+get_not_yet_installed_packages() {
+  local desired not_yet_installed
+  desired=("${@}")
+  not_yet_installed=()
+  for package_name in "${desired[@]}"; do
+    if ! is_installed_package "${package_name}"; then
+      not_yet_installed+=("${package_name}")
+    fi
+  done
+  echo "${not_yet_installed[*]}"
+}
+
+ensure_installed_packages() {
+  local desired not_yet_installed
+  desired=("${@}")
+  not_yet_installed=()
+  mapfile -t not_yet_installed < <(get_not_yet_installed_packages "${desired[@]}")
+  if [[ ${#not_yet_installed[@]} -gt 0 ]]; then
+    apt-get install -y "${not_yet_installed[@]}"
+  fi
+}
+
+# This program's entry point
+main() {
+  check_preconditions
+
+  convert_to_bridge
+
+  install_incus
+  configure_incus "$@"
+}
+
+main "$@"
