@@ -44,7 +44,7 @@ export type SshKeyUsernamePrefix = "gh" | "local";
 export type PrefixedUsername<Prefix extends SshKeyUsernamePrefix> =
   `${Prefix}:${string}`;
 export const PREFIXED_USERNAME_REGEX = /^(gh|local):/;
-export type SshKeyRaw = `{string} {string}`;
+export type SshKeyRaw = `ssh-{string} {string}`;
 export type SshKey =
   | PrefixedUsername<SshKeyUsernamePrefix>
   | SshKeyRaw;
@@ -53,7 +53,7 @@ export function isSshKeyRaw(value: unknown): value is SshKeyRaw {
   if (!isString(value)) {
     return false;
   }
-  return value.includes(" ");
+  return value.startsWith("ssh-") && value.includes(" ");
 }
 
 export function isPrefixedUsername(

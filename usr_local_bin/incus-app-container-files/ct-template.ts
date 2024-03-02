@@ -1,7 +1,7 @@
-import { isSshKeyRaw, SshKeyRaw } from "./cli.ts";
+import { isSshKeyRaw, PromiseOr, SshKeyRaw } from "./cli.ts";
 import { AsyncGetterOr, isPrefixedUsername } from "./cli.ts";
 import { SshKey } from "./cli.ts";
-import { dirname, run } from "./deps.ts";
+import { defaultRunOptions, dirname, run } from "./deps.ts";
 import { readFromUrl } from "./read-from-url.ts";
 import { stringify as yaml } from "https://deno.land/std@0.218.2/yaml/stringify.ts";
 import IPCIDR from "npm:ip-cidr@4.0.0";
@@ -86,24 +86,55 @@ export async function getPasswdRowOfLocalUser(
   return parsePasswdRow(passwd);
 }
 
-export async function resolveSshKey(sshKey: SshKey): Promise<SshKeyRaw> {
+export function parseSshKeyFile(contents: string): SshKeyRaw[] {
+  return contents
+    .split("\n")
+    .filter(isSshKeyRaw)
+    .map((k) => k as SshKeyRaw);
+}
+
+export async function readTextFiles(
+  dir: string,
+  filePredicate: (
+    file: Deno.DirEntry & { isFile: true },
+  ) => PromiseOr<boolean> = () => true,
+): Promise<string[]> {
+  const entries = [];
+  for await (const file of Deno.readDir(dir)) {
+    entries.push(file);
+  }
+  const files = entries
+    .filter((file) => file.isFile)
+    .map((file) => file as typeof file & { isFile: true });
+
+  const filesToRead = files.map((file) => [filePredicate(file), file] as const);
+  const filesContent = filesToRead.map(async ([predicateResponse, file]) =>
+    (await predicateResponse) ? [Deno.readTextFile(`${dir}/${file.name}`)] : []
+  );
+  return Promise.all((await Promise.all(filesContent)).flat());
+}
+
+export async function resolveSshKey(sshKey: SshKey): Promise<SshKeyRaw[]> {
   if (isPrefixedUsername(sshKey)) {
     const [prefix, username] = sshKey.split(":");
     if (prefix === "gh") {
-      return await (await fetch(`https://github.com/${username}.keys`))
-        .text() as SshKeyRaw;
+      return parseSshKeyFile(
+        await (await fetch(`https://github.com/${username}.keys`))
+          .text(),
+      );
     }
     if (prefix === "local") {
       const homeDir = (await getPasswdRowOfLocalUser(username)).home;
-      return await run([
-        "sh",
-        "-c",
-        `cat "${homeDir}"/.ssh/*.pub`,
-      ]) as SshKeyRaw;
+      return (await readTextFiles(
+        `${homeDir}/.ssh`,
+        ({ name }) => name.endsWith(".pub"),
+      ))
+        .map(parseSshKeyFile)
+        .flat();
     }
   }
   if (isSshKeyRaw(sshKey)) {
-    return sshKey;
+    return [sshKey];
   }
   throw new Error(`Invalid ssh key: ${sshKey}`);
 }
@@ -112,7 +143,7 @@ export async function resolveSshKeys(sshKeyArg: MultiArgument<SshKey>): Promise<
   SshKeyRaw[]
 > {
   const sshKeys = await resolveMultiArgument(sshKeyArg);
-  return await Promise.all(sshKeys.map(resolveSshKey));
+  return (await Promise.all(sshKeys.map(resolveSshKey))).flat();
 }
 
 type AppContainerCreateOptions = {
@@ -141,22 +172,11 @@ export async function createAppContainer(
   }).at(0);
   const nameserver = defaultGateway;
   const size = "10GiB";
-
-  const sshKeys: SshKey[] = await resolveMultiArgument(
-    options.sshKey as MultiArgument<SshKey>,
-  );
-  const sshKeysRaw: SshKeyRaw[] = await Promise.all(sshKeys.map(resolveSshKey));
+  const sshKeysRaw: SshKeyRaw[] = await resolveSshKeys(options.sshKey);
 
   const vendorConfig = {
-    ...(sshKeysRaw.length === 0 ? {} : {
-      write_files: [
-        {
-          path: "/root/.ssh/authorized_keys",
-          content: sshKeysRaw.join("\n"),
-          permissions: "0600",
-        },
-      ],
-    }),
+    disable_root: false,
+    ssh_authorized_keys: sshKeysRaw,
     manage_resolv_conf: true,
     resolv_conf: {
       nameservers: [nameserver],
