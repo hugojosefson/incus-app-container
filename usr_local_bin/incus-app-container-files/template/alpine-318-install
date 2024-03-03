@@ -4,12 +4,12 @@ set -xe
 # Type any extra commands inside this function. They will run last.
 extra_commands() {
   apk --no-cache add byobu musl-locales neovim
-  byobu-enable
-  ln -sf "$(command -v nvim)" /usr/local/bin/vim
+  su - root -c byobu-enable
+  ln -sf "$(command -v nvim)" /usr/bin/vim
 }
 
 create_executable() {
-	filename="$1"
+  filename="$1"
   create_file "${filename}"
   chmod +x "${filename}"
 }
@@ -17,33 +17,33 @@ create_executable() {
 create_file() {
   filename="$1"
   mkdir -p "$(dirname "${filename}")"
-  cat > "${filename}"
+  cat >"${filename}"
 }
 
 create_file_if_not_exists() {
-	filename="$1"
-	if [ ! -e "${filename}" ]; then
+  filename="$1"
+  if [ ! -e "${filename}" ]; then
     create_file "${filename}"
-	else
-	  cat > /dev/null
-	fi
+  else
+    cat >/dev/null
+  fi
 }
 
 enable_service() {
-	name="$1"
-	rc-update add "${name}" boot
+  name="$1"
+  rc-update add "${name}" boot
 }
 
 create_service() {
-	name="$1"
-	create_executable "/etc/init.d/${name}"
-	enable_service "${name}"
+  name="$1"
+  create_executable "/etc/init.d/${name}"
+  enable_service "${name}"
 }
 
 create_executable "/etc/local.d/update-issue.start" <<'EOF'
 #!/bin/sh
 set -e
-hr(){
+hr() {
   echo "----------------------------------------------------------------------"
 }
 sed "/-----/,100d" -i /etc/issue || true
@@ -59,20 +59,40 @@ apk add --no-cache curl docker docker-cli-compose openssh-server
 enable_service local
 enable_service sshd
 enable_service docker
-create_service docker-compose <<'EOF'
+
+appdata_dir="/appdata"
+docker_compose_file="${appdata_dir}/docker-compose.yml"
+create_service docker-compose <<EOF
 #!/sbin/openrc-run
 
-name=$RC_SVCNAME
+################################################################################
+# Manages a docker-compose service.
+################################################################################
+
+appdata_dir="${appdata_dir}"
+docker_compose_file="${docker_compose_file}"
+
+name=\$RC_SVCNAME
 description="Docker Compose Application Service"
+description_reload="Reload changes in \${docker_compose_file}"
 
 depend() {
 	after docker
 	need docker
 }
 
+extra_started_commands="reload"
+
+_docker_compose() {
+  docker-compose --file "\${docker_compose_file}" "\$@"
+}
+
+_docker_compose_up() {
+  _docker_compose up --detach --remove-orphans --pull=always --wait
+}
+
 checkconfig() {
-  cd /appdata
-  docker-compose config --quiet
+  _docker_compose config --quiet
 }
 
 start_pre() {
@@ -83,14 +103,14 @@ start_pre() {
   # If, on the other hand, this *is* a restart, then the stop_pre
   # action will have ensured that the config is usable and we don't
   # need to do that again.
-  if [ "${RC_CMD}" != "restart" ] ; then
-    checkconfig || return $?
+  if [ "\${RC_CMD}" != "restart" ] ; then
+    checkconfig || return \$?
   fi
 
   if ! docker info 2>/dev/null >/dev/null; then
     ebegin "Waiting for Docker daemon to be ready..."
     timeout 15 sh -c 'until docker info 2>/dev/null >/dev/null; do sleep 1; done;'
-    if [ $? -eq 0 ]; then
+    if [ \$? -eq 0 ]; then
       eend 0 "Docker daemon is ready"
     else
       eend 1 "Docker daemon is not ready"
@@ -101,35 +121,188 @@ start_pre() {
 stop_pre() {
   # If this is a restart, check to make sure the user's config
   # isn't busted before we stop the running daemon.
-  if [ "${RC_CMD}" = "restart" ] ; then
-      checkconfig || return $?
+  if [ "\${RC_CMD}" = "restart" ] ; then
+      checkconfig || return \$?
   fi
 }
 
 start() {
-	ebegin "Starting $RC_SVCNAME"
-	cd /appdata
-	docker-compose up --detach --remove-orphans --pull=always --wait
-	eend $?
+	ebegin "Starting \$RC_SVCNAME"
+  _docker_compose_up
+	eend \$?
+}
+
+reload() {
+  ebegin "Reloading \$RC_SVCNAME's \${docker_compose_file}"
+  _docker_compose_up
+  eend \$?
 }
 
 stop() {
-	ebegin "Stopping $RC_SVCNAME"
-	cd /appdata
-	docker-compose down
-	eend $?
+	ebegin "Stopping \$RC_SVCNAME"
+	if ! [ -r "\${docker_compose_file}" ]; then
+    service docker stop &
+    eend 0
+    return 0
+  fi
+	_docker_compose down
+	eend \$?
 }
 EOF
 
-create_file_if_not_exists /appdata/docker-compose.yml <<'EOF'
+create_service docker-compose-watchdog <<EOF
+#!/sbin/openrc-run
+
+################################################################################
+# Keeps an instance of docker-compose-watchdog running.
+################################################################################
+
+supervisor="supervise-daemon"
+command="/usr/bin/docker-compose-watchdog"
+stopsig="HUP"
+retry="INT/5/TERM/5/KILL/5"
+EOF
+
+create_executable "/usr/bin/docker-compose-watchdog" <<EOF
+#!/bin/sh
+set -e
+
+################################################################################
+# Watches the ${docker_compose_file} file for changes and reloads the
+# docker-compose service when it does.
+#
+# This script is intended to be run by the docker-compose-watchdog service.
+################################################################################
+
+docker_compose_file="${docker_compose_file}"
+inotifyd_max_wait="60"
+previous_hash=""
+current_hash=""
+inotifyd_pid=""
+shutting_down=""
+
+handle_signal() {
+  shutting_down="true"
+  if [ -n "\${inotifyd_pid}" ]; then
+    echo "Received signal, terminating inotifyd" >&2
+    kill "\${inotifyd_pid}"
+    wait "\${inotifyd_pid}" || true
+  fi
+  exit 0
+}
+trap handle_signal HUP INT TERM QUIT ABRT KILL
+
+get_hash() {
+  if ! [ -r "\${docker_compose_file}" ]; then
+    echo "N/A"
+  else
+    sha256sum "\${docker_compose_file}" | cut -d' ' -f1
+  fi
+}
+
+is_still_the_same_hash() {
+  current_hash="\$(get_hash)"
+  if [ "\${current_hash}" = "\${previous_hash}" ]; then
+    previous_hash="\${current_hash}"
+    return 0
+  else
+    previous_hash="\${current_hash}"
+    return 1
+  fi
+}
+
+has_the_file_changed() {
+  ! is_still_the_same_hash
+}
+
+main() {
+  while true; do
+    if has_the_file_changed; then
+      docker-compose-reload
+      sleep 1
+      continue
+    fi
+
+    if [ -r "\${docker_compose_file}" ]; then
+      timeout "\${inotifyd_max_wait}" inotifyd : "\${docker_compose_file}":cew0uoDMx &
+      inotifyd_pid="\$!"
+      echo "Waiting up to \${inotifyd_max_wait} seconds for changes to \${docker_compose_file} in inotifyd pid \${inotifyd_pid}" >&2
+      wait "\${inotifyd_pid}"
+      echo "inotifyd terminated" >&2
+      if [ -n "\${shutting_down}" ]; then
+        echo "Breaking watch loop because we're shutting down" >&2
+        break
+      fi
+      echo "Clearing inotifyd pid" >&2
+      inotifyd_pid=""
+    else
+      sleep 1
+    fi
+  done
+  echo "Exited main loop" >&2
+}
+
+main "\$@"
+EOF
+
+create_executable "/usr/bin/docker-compose-reload" <<EOF
+#!/bin/sh
+set -e
+
+################################################################################
+# Makes sure that the docker-compose service is running and up-to-date with any
+# ${docker_compose_file} file.
+#
+# Takes down the service if the file is not readable. If the file is not ok, it
+# does nothing.
+#
+# This script is intended to be run by the docker-compose-watchdog service.
+################################################################################
+
+docker_compose_file="${docker_compose_file}"
+
+is_docker_compose_running() {
+  service docker-compose status --quiet
+}
+
+is_docker_compose_file_readable() {
+  test -r "\${docker_compose_file}"
+}
+
+is_docker_compose_file_ok() {
+  docker-compose -f "\${docker_compose_file}" config --quiet
+}
+
+main() {
+  if ! is_docker_compose_file_readable; then
+    service docker-compose stop
+    return 0
+  fi
+
+  if ! is_docker_compose_file_ok; then
+    return 0
+  fi
+
+  if ! is_docker_compose_running; then
+    service docker-compose start
+    return 0
+  fi
+
+  service docker-compose reload
+}
+
+main "\$@"
+EOF
+
+create_file_if_not_exists "${docker_compose_file}" <<EOF
 services:
   app:
     image: docker.io/traefik/whoami
     environment:
-      - PORT="80"
+      - PORT=80
     ports: [ "80:80" ]
-    # volumes:
-    #   - /appdata/data:/data:ro    # left side is inside lxc, right is inside docker
+#   volumes:
+#     - ${appdata_dir}/data:/data:ro    # left side is inside lxc, right is inside docker
 EOF
 
 extra_commands

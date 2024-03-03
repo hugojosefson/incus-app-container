@@ -32,6 +32,28 @@ I see this as a successor to
 - The containers I create are compatible with Incus' normal tools, and with
   `incus-ui-canonical`.
 
+### ...or maybe...?
+
+- Put each app's configuration (ip(s), extra bind-mounts, image, etc) in a
+  `<appName>/incus-app-container.yml` file in the app's subdirectory.
+- The app container has a subdirectory `<appName>/appdata/` mounted as
+  `/appdata` inside the container, so it can't reach its own configuration.
+- No scripts to run, just an always running container that watches the `apps/`
+  directory for changes, and:
+  - creates+starts new incus app containers for each new subdirectory it finds
+    with an `incus-app-container.yml` file,
+  - updates existing incus app containers when their `incus-app-container.yml`
+    changes,
+  - deletes incus app containers for subdirectories that are deleted,
+  - stops (doesn't start) containers if they have file `<appName>/disabled`.
+- The service keeps track of its own containers by setting a label on them, and
+  only manages containers with that label.
+- Each `docker-compose.yml` is by default prepared with a service that keeps its
+  docker images up to date. It's a third-party tool, called
+  [Watchtower](https://containrrr.dev/watchtower/).
+- Inside each incus app container, there's a service that watches the
+  `docker-compose.yml` file for changes, and reloads the app when it changes.
+
 ## Prerequisites
 
 - A working server with one of
@@ -48,6 +70,32 @@ I see this as a successor to
 ```sh
 curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
   | tar -xzvC /usr/local/bin --wildcards "*/usr_local_bin/" --strip-components=2
+```
+
+## Utils for testing
+
+```sh
+watch -n0.2 docker ps
+```
+
+```sh
+watch -n0.2 'ps -ef | grep -v "ps -ef"'
+```
+
+```sh
+service docker-compose-watchdog stop
+```
+
+```sh
+killall inotifyd
+```
+
+```sh
+docker-compose-watchdog
+```
+
+```sh
+killall -HUP docker-compose-watchdog
 ```
 
 ## License

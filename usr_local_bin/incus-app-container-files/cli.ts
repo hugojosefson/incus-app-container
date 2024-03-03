@@ -9,7 +9,13 @@
 import { breadc, ParseError } from "npm:breadc@0.9.7";
 import { s } from "https://deno.land/x/fns@1.1.0/string/s.ts";
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
-import { createAppContainer } from "./ct-template.ts";
+import {
+  createAppContainer,
+  INCUS_CONTAINER_STATUS_CODES,
+  untilStatusCode,
+} from "./ct-template.ts";
+import { run } from "./deps.ts";
+import { CommandFailureError } from "https://deno.land/x/run_simple@2.2.0/src/run.ts";
 
 export type GetterOr<T> = T | (() => T);
 export type PromiseOr<T> = T | Promise<T>;
@@ -131,20 +137,55 @@ cli
       ),
     },
   )
-  .action(async (name: string, { cidr, sshKey }) => {
-    console.log(s(name));
+  .option(
+    "--start",
+    {
+      description: "Start the container after creating it.",
+      default: false,
+      cast: Boolean,
+    },
+  )
+  .action(async (name: string, { cidr, sshKey, start }) => {
     const { appdataDir } = await createAppContainer({ name, cidr, sshKey });
+    if (start) {
+      console.error(`Starting container ${s(name)}, as requested...`);
+      await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+      await run(["incus", "start", name]);
+      await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
+    }
     console.log(appdataDir);
   });
 
 cli
-  .command("delete <container_name>", "Delete an Incus app container.")
-  .action((containerName: string) => {
-    console.log(`Deleting container ${s(containerName)}`);
+  .command("delete <container_name>", "Delete an Incus app container instance.")
+  .alias("rm")
+  .option(
+    "--force",
+    {
+      description: "Force the removal of running instance, if any.",
+      default: false,
+      cast: Boolean,
+    },
+  )
+  .option(
+    "--delete-appdata",
+    {
+      description: "Delete the appdata directory as well.",
+      default: false,
+      cast: Boolean,
+    },
+  )
+  .action((containerName: string, { deleteAppdata }) => {
+    console.log(
+      `Deleting container ${s(containerName)}${
+        deleteAppdata ? " and its appdata" : ""
+      }...`,
+    );
   });
 
 cli
-  .command("list", "List all Incus app containers.")
+  .command("list", "List all Incus app container instances.")
+  .alias("ls")
   .option("--format <format>", {
     description: "Output format.",
     default: "table",
@@ -168,6 +209,12 @@ try {
       ].join("\n"),
     );
     Deno.exit(2);
+  }
+  if (e instanceof CommandFailureError) {
+    console.log(e.stdout);
+    console.error(e.stderr);
+    console.error(e.stack);
+    Deno.exit(1);
   }
   throw e;
 }
