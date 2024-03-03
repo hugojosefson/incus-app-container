@@ -1,3 +1,7 @@
+import {
+  CreateAppContainerOptions,
+  resolveCreateAppContainerOptions,
+} from "./create-app-container-options.ts";
 import { createAppContainer } from "./create-app-container.ts";
 import { breadc, run, s } from "./deps.ts";
 import {
@@ -5,6 +9,7 @@ import {
   untilStatusCode,
 } from "./incus-container-status.ts";
 import { isOutputFormat, OUTPUT_FORMATS } from "./output-format.ts";
+import { isSize } from "./size.ts";
 import { isSshKey } from "./ssh-key.ts";
 import { enforceType, optional } from "./type-guard.ts";
 
@@ -20,7 +25,7 @@ export async function createCli() {
   cli
     .command("create <container_name>", "Create a new Incus app container.")
     .option(
-      "--cidr <cidr>",
+      "--ip <cidr>",
       {
         description:
           "Network address for the container in CIDR format, for example 10.20.30.40/24; or 'dhcp'.",
@@ -47,16 +52,31 @@ export async function createCli() {
         cast: Boolean,
       },
     )
-    .action(async (name: string, { cidr, sshKey, start }) => {
-      const { appdataDir } = await createAppContainer({ name, cidr, sshKey });
-      if (start) {
-        console.error(`Starting container ${s(name)}, as requested...`);
-        await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
-        await run(["incus", "start", name]);
-        await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
-      }
-      console.log(appdataDir);
-    });
+    .option(
+      "--disk-size <size>",
+      {
+        description: "Disk size for the container, for example 10GiB.",
+        cast: await enforceType(
+          optional(isSize),
+          "a valid size, for example 10GiB",
+          "size",
+        ),
+      },
+    )
+    .action(
+      async (name: string, inputOptions) => {
+        const options: CreateAppContainerOptions =
+          await resolveCreateAppContainerOptions(inputOptions);
+        const { appdataDir } = await createAppContainer(name, options);
+        if (options.start) {
+          console.error(`Starting container ${s(name)}, as requested...`);
+          await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+          await run(["incus", "start", name]);
+          await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
+        }
+        console.log(appdataDir);
+      },
+    );
 
   cli
     .command(

@@ -12,7 +12,9 @@ export async function resolveMultiArgument<T>(
     return resolveMultiArgument([...multiArgument]);
   }
   if (Array.isArray(multiArgument)) {
-    return await Promise.all(multiArgument.map(resolveMultiArgument)) as T[];
+    return await Promise.all(
+      multiArgument.flatMap(resolveMultiArgument),
+    ) as T[];
   }
   return [multiArgument] as T[];
 }

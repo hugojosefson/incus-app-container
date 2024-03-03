@@ -1,4 +1,5 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
+import { s } from "./deps.ts";
 import { MultiArgument, resolveMultiArgument } from "./multi-argument.ts";
 import { getPasswdRowOfLocalUser } from "./passwd-row.ts";
 import { readTextFiles } from "./read-text-files.ts";
@@ -66,12 +67,15 @@ export async function resolveSshKey(sshKey: SshKey): Promise<SshKeyRaw[]> {
   if (isSshKeyRaw(sshKey)) {
     return [sshKey];
   }
-  throw new Error(`Invalid ssh key: ${sshKey}`);
+  throw new Error(`Invalid ssh key: ${s(sshKey)}`);
 }
 
 export async function resolveSshKeys(sshKeyArg: MultiArgument<SshKey>): Promise<
   SshKeyRaw[]
 > {
-  const sshKeys = await resolveMultiArgument(sshKeyArg);
-  return (await Promise.all(sshKeys.map(resolveSshKey))).flat();
+  const sshKeys: SshKey[] = await resolveMultiArgument(sshKeyArg);
+  const promisesOfSshKeys: Promise<SshKeyRaw[]>[] = sshKeys.map(resolveSshKey);
+  const sshKeyRawss: SshKeyRaw[][] = await Promise.all(promisesOfSshKeys);
+  const sshKeyRaws: SshKeyRaw[] = sshKeyRawss.flat();
+  return sshKeyRaws;
 }

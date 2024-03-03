@@ -1,22 +1,15 @@
 import { stringify as yaml } from "https://deno.land/std@0.218.2/yaml/stringify.ts";
-import IPCIDR from "npm:ip-cidr@4.0.0";
+import { CreateAppContainerOptions } from "./create-app-container-options.ts";
 import { run } from "./deps.ts";
 import { getInstallScript } from "./get-install-script.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
 } from "./incus-container-status.ts";
-import { MultiArgument } from "./multi-argument.ts";
-import { resolveSshKeys, SshKey, SshKeyRaw } from "./ssh-key.ts";
-
-export type AppContainerCreateOptions = {
-  name: string;
-  cidr: string;
-  sshKey: MultiArgument<SshKey>;
-};
 
 export async function createAppContainer(
-  options: AppContainerCreateOptions,
+  name: string,
+  options: CreateAppContainerOptions,
 ): Promise<{ appdataDir: string }> {
   const installScript = await getInstallScript("alpine-318");
   const runcmd = [installScript];
@@ -29,21 +22,15 @@ export async function createAppContainer(
   // await run(["chown", "-R", `${100_000}:${100_000}`, appdataDir]);
 
   const image = "images:alpine/3.19/cloud";
-  const defaultGateway = new IPCIDR(options.cidr).toArray({
-    from: 1,
-    limit: 1,
-  }).at(0);
-  const nameserver = defaultGateway;
-  const size = "10GiB";
-  const sshKeysRaw: SshKeyRaw[] = await resolveSshKeys(options.sshKey);
-
   const vendorConfig = {
     disable_root: false,
-    ssh_authorized_keys: sshKeysRaw,
-    manage_resolv_conf: true,
-    resolv_conf: {
-      nameservers: [nameserver],
-    },
+    ssh_authorized_keys: options.sshKey,
+    ...(options.ip === "dhcp" ? {} : {
+      manage_resolv_conf: true,
+      resolv_conf: {
+        nameservers: [options.nameserver.address],
+      },
+    }),
     packages: [
       "bash",
       "curl",
@@ -57,14 +44,14 @@ export async function createAppContainer(
 
   const userConfig = {};
 
-  const networkConfigYaml = options.cidr === "dhcp" ? "DHCP on eth0" : yaml({
+  const networkConfigYaml = options.ip === "dhcp" ? "DHCP on eth0" : yaml({
     network: {
       version: 2,
       ethernets: {
         eth0: {
-          addresses: [options.cidr],
-          routes: [{ to: "0.0.0.0/0", via: defaultGateway }],
-          nameservers: { addresses: [nameserver] },
+          addresses: [options.ip.cidr],
+          routes: [{ to: "0.0.0.0/0", via: options.gateway.address }],
+          nameservers: { addresses: [options.nameserver.address] },
         },
       },
     },
@@ -76,7 +63,7 @@ export async function createAppContainer(
     "--no-profiles",
     "--storage=default",
     image,
-    options.name,
+    name,
   ], {
     stdin: yaml({
       description: "By incus-app-container",
@@ -105,15 +92,14 @@ export async function createAppContainer(
     "config",
     "device",
     "set",
-    options.name,
+    name,
     "root",
-    `size=${size}`,
+    `size=${options.diskSize}`,
   ]);
 
-  await run(["incus", "start", options.name]);
-  await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, options.name);
+  await run(["incus", "start", name]);
+  await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
   return {
-    appdataDir:
-      `created container ${options.name} successfully, but no appdata dir yet.`,
+    appdataDir: `/apps/${name}`,
   };
 }

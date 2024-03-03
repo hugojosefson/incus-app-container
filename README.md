@@ -72,29 +72,27 @@ curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
   | tar -xzvC /usr/local/bin --wildcards "*/usr_local_bin/" --strip-components=2
 ```
 
-## Utils for testing
+## Utils for testing inside an incus container
 
 ```sh
+# watch running docker containers
 watch -n0.2 docker ps
 ```
 
 ```sh
+# watch the processes inside the container
 watch -n0.2 'ps -ef | grep -v "ps -ef"'
 ```
 
 ```sh
+# run the watchdog manually
 service docker-compose-watchdog stop
-```
-
-```sh
 killall inotifyd
-```
-
-```sh
 docker-compose-watchdog
 ```
 
 ```sh
+# ask the watchdog to stop
 killall -HUP docker-compose-watchdog
 ```
 
