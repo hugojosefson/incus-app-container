@@ -15,7 +15,7 @@ import {
   untilStatusCode,
 } from "./ct-template.ts";
 import { run } from "./deps.ts";
-import { CommandFailureError } from "https://deno.land/x/run_simple@2.2.0/src/run.ts";
+import { CommandFailureError } from "https://deno.land/x/run_simple@2.3.0/src/run.ts";
 
 export type GetterOr<T> = T | (() => T);
 export type PromiseOr<T> = T | Promise<T>;
