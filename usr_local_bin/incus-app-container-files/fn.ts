@@ -8,41 +8,12 @@ export function extractShebangCommand(scriptContents: string): string[] {
 }
 
 /**
- * Extracts a value from a table, output by `pvesh get`.
- * @param table the table output by `pvesh get`
- * @param key the key to search for
- * @returns the value, or undefined if not found
+ * Flips places of keys and values in a record.
+ * @param obj the record to flip
+ * @returns the flipped record
  */
-export function extractValueFromPveShGet(
-  table: string,
-  key: string,
-): string | undefined;
-/**
- * Extracts a value from a table, output by `pvesh get`.
- * @param table the table output by `pvesh get`
- * @param keys the keys to search for
- * @returns the value, or undefined if not found
- */
-export function extractValueFromPveShGet(
-  table: string,
-  keys: string[],
-): string | undefined;
-/**
- * Extracts a value from a table, output by `pvesh get`.
- * @param table the table output by `pvesh get`
- * @param keyOrKeys the key or keys to search for
- * @returns the value, or undefined if not found
- */
-export function extractValueFromPveShGet(
-  table: string,
-  keyOrKeys: string | string[],
-): string | undefined {
-  const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
-  const line: string = table
-    .split("\n")
-    .map((line) => line.replaceAll(/[│ ]+/g, " ") as string)
-    .find((line) => keys.some((key) => line.startsWith(` ${key} `))) ??
-    "";
-  const [_, _key, value, __] = line.split(" ");
-  return value;
+export function flipStringToStringRecord<K extends string, V extends string>(
+  obj: Record<K, V>,
+): Record<V, K> {
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k]));
 }

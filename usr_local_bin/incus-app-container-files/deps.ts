@@ -10,3 +10,7 @@ export type {
   RunOptions,
   SimpleValue,
 } from "https://deno.land/x/run_simple@2.3.0/mod.ts";
+
+export { breadc, ParseError } from "npm:breadc@0.9.7";
+export { s } from "https://deno.land/x/fns@1.1.0/string/s.ts";
+export { CommandFailureError } from "https://deno.land/x/run_simple@2.3.0/src/run.ts";
