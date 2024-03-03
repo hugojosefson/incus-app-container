@@ -54,11 +54,7 @@ hr >> /etc/issue
 EOF
 
 apk upgrade --no-cache
-apk add --no-cache curl docker openssh-server
-
-DOCKER_COMPOSE_VERSION="$(curl -sSfL https://semver-version.deno.dev/api/github/docker/compose)"
-curl -sSfL "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-linux-x86_64" \
-  | create_executable /usr/local/bin/docker-compose
+apk add --no-cache curl docker docker-cli-compose openssh-server
 
 enable_service local
 enable_service sshd
@@ -76,7 +72,7 @@ depend() {
 
 checkconfig() {
   cd /appdata
-  /usr/local/bin/docker-compose config --quiet
+  docker-compose config --quiet
 }
 
 start_pre() {
@@ -113,14 +109,14 @@ stop_pre() {
 start() {
 	ebegin "Starting $RC_SVCNAME"
 	cd /appdata
-	/usr/local/bin/docker-compose up --detach --remove-orphans --pull=always --wait
+	docker-compose up --detach --remove-orphans --pull=always --wait
 	eend $?
 }
 
 stop() {
 	ebegin "Stopping $RC_SVCNAME"
 	cd /appdata
-	/usr/local/bin/docker-compose down
+	docker-compose down
 	eend $?
 }
 EOF
