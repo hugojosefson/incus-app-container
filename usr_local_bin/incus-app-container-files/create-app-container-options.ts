@@ -3,16 +3,21 @@ import { MultiArgument } from "./multi-argument.ts";
 import { Size } from "./size.ts";
 import { resolveSshKeys, SshKey, SshKeyRaw } from "./ssh-key.ts";
 
-export type CreateAppContainerInputOptions = {
+export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   ip: string;
   gateway?: string;
   nameserver?: string;
   sshKey: MultiArgument<SshKey>;
   start: boolean;
   diskSize?: Size;
+  appsDir: AppsDir;
 };
 
-export type CreateAppContainerOptions =
+export type AbsolutePath = `/` | `/${string}`;
+export function isAbsolutePath(value: unknown): value is AbsolutePath {
+  return typeof value === "string" && value.startsWith("/");
+}
+export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
   & (
     | { ip: "dhcp" }
     | {
@@ -25,13 +30,16 @@ export type CreateAppContainerOptions =
     sshKey: SshKeyRaw[];
     start: boolean;
     diskSize: Size;
+    appsDir: AppsDir;
   };
 
 const DEFAULT_DISK_SIZE: Size = "10GiB";
 
-export async function resolveCreateAppContainerOptions(
-  input: CreateAppContainerInputOptions,
-): Promise<CreateAppContainerOptions> {
+export async function resolveCreateAppContainerOptions<
+  AppsDir extends AbsolutePath,
+>(
+  input: CreateAppContainerInputOptions<AppsDir>,
+): Promise<CreateAppContainerOptions<AppsDir>> {
   const sshKey: SshKeyRaw[] = await resolveSshKeys(input.sshKey);
 
   if (input.ip === "dhcp") {
@@ -40,7 +48,7 @@ export async function resolveCreateAppContainerOptions(
       sshKey,
       start: input.start,
       diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
-    } as CreateAppContainerOptions;
+    } as CreateAppContainerOptions<AppsDir>;
   }
 
   const cidr = new Cidr(input.ip);
@@ -48,6 +56,7 @@ export async function resolveCreateAppContainerOptions(
   const nameserver = input.nameserver
     ? createAddress(input.nameserver)
     : firstIp(cidr);
+  const appsDir = input.appsDir;
 
   return {
     ip: cidr,
@@ -56,7 +65,8 @@ export async function resolveCreateAppContainerOptions(
     sshKey,
     start: input.start,
     diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
-  } as CreateAppContainerOptions;
+    appsDir,
+  } as CreateAppContainerOptions<AppsDir>;
 }
 
 export function firstIp(cidr: Cidr): Address {

@@ -1,5 +1,8 @@
 import { stringify as yaml } from "https://deno.land/std@0.218.2/yaml/stringify.ts";
-import { CreateAppContainerOptions } from "./create-app-container-options.ts";
+import {
+  AbsolutePath,
+  CreateAppContainerOptions,
+} from "./create-app-container-options.ts";
 import { run } from "./deps.ts";
 import { getInstallScript } from "./get-install-script.ts";
 import {
@@ -14,9 +17,12 @@ export type AppContainer<Name extends string> = {
   appdataDir: AppdataDir<Name>;
 };
 
-export async function createAppContainer<Name extends string>(
+export async function createAppContainer<
+  AppsDir extends AbsolutePath,
+  Name extends string,
+>(
   name: Name,
-  options: CreateAppContainerOptions,
+  options: CreateAppContainerOptions<AppsDir>,
 ): Promise<AppContainer<Name>> {
   {
     using spinner = new StatusSpinnerResource(name, {

@@ -1,5 +1,6 @@
 import {
   CreateAppContainerOptions,
+  isAbsolutePath,
   resolveCreateAppContainerOptions,
 } from "./create-app-container-options.ts";
 import { createAppContainer } from "./create-app-container.ts";
@@ -63,9 +64,22 @@ export async function createCli() {
         ),
       },
     )
+    .option(
+      "--apps-dir <apps-dir>",
+      {
+        default: "/mnt/apps",
+        description:
+          "Base directory for where all app containers' appdata are (to be) stored.",
+        cast: await enforceType(
+          isAbsolutePath,
+          "an absolute path, for example /mnt/apps",
+          "apps-dir",
+        ),
+      },
+    )
     .action(
       async (name: string, inputOptions) => {
-        const options: CreateAppContainerOptions =
+        const options: CreateAppContainerOptions<typeof inputOptions.appsDir> =
           await resolveCreateAppContainerOptions(inputOptions);
         const { appdataDir } = await createAppContainer(name, options);
         if (options.start) {
