@@ -69,10 +69,15 @@ export async function createCli() {
           await resolveCreateAppContainerOptions(inputOptions);
         const { appdataDir } = await createAppContainer(name, options);
         if (options.start) {
-          console.error(`Starting container ${s(name)}, as requested...`);
-          await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
           await run(["incus", "start", name]);
-          await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
+          await untilStatusCode(
+            INCUS_CONTAINER_STATUS_CODES.Running,
+            name,
+            {
+              pending: `Starting container, as requested...`,
+              done: `Started container, as requested.`,
+            },
+          );
         }
         console.log(appdataDir);
       },

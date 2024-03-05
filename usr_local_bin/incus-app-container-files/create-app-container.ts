@@ -98,7 +98,14 @@ export async function createAppContainer(
   ]);
 
   await run(["incus", "start", name]);
-  await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+  await untilStatusCode(
+    INCUS_CONTAINER_STATUS_CODES.Stopped,
+    name,
+    {
+      pending: `Running cloud-init...`,
+      done: `Ran cloud-init.`,
+    },
+  );
   return {
     appdataDir: `/apps/${name}`,
   };

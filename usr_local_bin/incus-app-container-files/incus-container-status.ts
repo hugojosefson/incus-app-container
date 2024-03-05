@@ -29,25 +29,45 @@ export const INCUS_CONTAINER_STATUS_CODES = flipStringToStringRecord(
   INCUS_CONTAINER_STATUS_NAMES,
 );
 
+export type StatusMessages = {
+  pending: string;
+  done: string;
+};
+
+export function lookupStatusName(
+  currentStatusCode: IncusContainerStatusCode,
+): IncusContainerStatusName {
+  return INCUS_CONTAINER_STATUS_NAMES[currentStatusCode];
+}
+
+function calculateMessage(
+  name: string,
+  statusMessages: StatusMessages,
+  currentStatusCodes: IncusContainerStatusCode[] = [],
+): string {
+  const currently: string[] = currentStatusCodes.length === 0 ? [] : [
+    ` (currently `,
+    currentStatusCodes.map(lookupStatusName).map((n) => n.toLowerCase()).join(
+      ", ",
+    ),
+    `)`,
+  ];
+  return [`${name}: `, statusMessages.pending, ...currently].join("");
+}
+
 export async function untilStatusCode(
   codeToWaitFor: IncusContainerStatusCode,
-  containerName: string,
+  name: string,
+  statusMessages: StatusMessages = {
+    pending: `Waiting to be ${
+      lookupStatusName(codeToWaitFor).toLowerCase()
+    }...`,
+    done: `${lookupStatusName(codeToWaitFor)}.`,
+  },
   intervalMs = 1000 / 7,
 ): Promise<void> {
-  const statusToWaitFor = INCUS_CONTAINER_STATUS_NAMES[codeToWaitFor];
-  const calculateMessage = (
-    currentStatusCodes: IncusContainerStatusCode[] = [],
-  ) =>
-    currentStatusCodes.length
-      ? `Waiting for container ${containerName} to be ${statusToWaitFor}...`
-      : `Waiting for container ${containerName} to be ${statusToWaitFor}... (currently ${
-        currentStatusCodes.map((currentStatusCode) =>
-          INCUS_CONTAINER_STATUS_NAMES[currentStatusCode]
-        ).join(", ")
-      })`;
-
   const spinner = new Spinner({
-    message: calculateMessage(),
+    message: calculateMessage(name, statusMessages),
     interval: intervalMs,
   });
   try {
@@ -59,23 +79,29 @@ export async function untilStatusCode(
         "incus",
         "list",
         "--format=json",
-        containerName,
+        name,
       ], { verbose: false }) as {
         name: string;
         status_code: number | string;
       }[];
       const currentStatusCodes = containers
-        .filter(({ name }) => name === containerName)
+        .filter(({ name }) => name === name)
         .map(({ status_code }) => `${status_code}` as IncusContainerStatusCode);
 
-      spinner.message = calculateMessage(currentStatusCodes);
+      spinner.message = calculateMessage(
+        name,
+        statusMessages,
+        currentStatusCodes,
+      );
 
       if (currentStatusCodes.includes(codeToWaitFor)) {
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     } while (true);
+    spinner.message = statusMessages.done;
   } finally {
     spinner.stop();
   }
+  console.error(`✓ ${name}: ${statusMessages.done}`);
 }
