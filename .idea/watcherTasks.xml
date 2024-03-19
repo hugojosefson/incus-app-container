@@ -21,5 +21,8 @@
       <option name="workingDir" value="" />
       <envs />
     </TaskOptions>
+    <enabled-global>
+      <option value="deno fmt" />
+    </enabled-global>
   </component>
 </project>
