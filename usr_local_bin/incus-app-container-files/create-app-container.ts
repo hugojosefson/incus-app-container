@@ -145,6 +145,6 @@ export async function createAppContainer<
 
   return {
     name,
-    appdataDir: `/mnt/apps/${name}` as AppdataDir<Name>,
+    appdataDir: `${options.appsDir}/${name}` as AppdataDir<Name>,
   };
 }
