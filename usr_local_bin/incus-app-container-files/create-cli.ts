@@ -14,6 +14,9 @@ import { isSize } from "./size.ts";
 import { isSshKey } from "./ssh-key.ts";
 import { enforceType, optional } from "./type-guard.ts";
 
+export const COMMAND_NAMES = ["create", "delete", "list"] as const;
+export type CommandName = typeof COMMAND_NAMES[number];
+
 /**
  * Creates an instance of our CLI.
  */
