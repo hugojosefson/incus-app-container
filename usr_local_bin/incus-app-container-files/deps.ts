@@ -1,4 +1,4 @@
-export { dirname } from "https://deno.land/std@0.218.2/path/dirname.ts";
+export { dirname } from "https://deno.land/std@0.220.1/path/dirname.ts";
 
 export { camelCase } from "https://deno.land/x/case@2.2.0/mod.ts";
 export { Select } from "https://deno.land/x/cliffy@v1.0.0-rc.3/prompt/select.ts";

@@ -1,4 +1,4 @@
-import { stringify as yaml } from "https://deno.land/std@0.218.2/yaml/stringify.ts";
+import { stringify as yaml } from "https://deno.land/std@0.220.1/yaml/stringify.ts";
 import {
   AbsolutePath,
   CreateAppContainerOptions,

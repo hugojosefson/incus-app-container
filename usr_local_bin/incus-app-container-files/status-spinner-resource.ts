@@ -1,4 +1,4 @@
-import { Spinner } from "https://deno.land/std@0.218.2/cli/spinner.ts";
+import { Spinner } from "https://deno.land/std@0.220.1/cli/spinner.ts";
 import { StatusMessages } from "./incus-container-status.ts";
 
 function calculateMessage(

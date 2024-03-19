@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectTasksOptions">
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="-E s|std@.STD_VERSION|std@0.218.2|g -i $FilePath$" />
+      <option name="arguments" value="-E s|std@.STD_VERSION|std@0.220.1|g -i $FilePath$" />
       <option name="checkSyntaxErrors" value="false" />
       <option name="description" />
       <option name="exitCodeBehavior" value="ERROR" />

@@ -1,4 +1,4 @@
-import { dirname } from "https://deno.land/std@0.218.2/path/dirname.ts";
+import { dirname } from "https://deno.land/std@0.220.1/path/dirname.ts";
 import { readFromUrl } from "./read-from-url.ts";
 
 export async function getInstallScript(baseFilename: string): Promise<string> {
