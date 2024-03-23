@@ -48,6 +48,7 @@ export async function resolveCreateAppContainerOptions<
       sshKey,
       start: input.start,
       diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
+      appsDir: input.appsDir,
     } as CreateAppContainerOptions<AppsDir>;
   }
 

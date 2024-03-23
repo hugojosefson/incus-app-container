@@ -34,13 +34,6 @@ export async function createAppContainer<
 
     spinner.currentStatus = "running install script for alpine-318";
     const runcmd = [installScript];
-    // const appdataDir = await getAppdataDir(options);
-    // await Deno.mkdir(appdataDir, { recursive: true });
-    // await Deno.writeTextFile(
-    //   appdataDir + "/docker-compose.yml",
-    //   await readFromUrl(new URL("template/docker-compose.yml", import.meta.url)),
-    // );
-    // await run(["chown", "-R", `${100_000}:${100_000}`, appdataDir]);
 
     const image = "images:alpine/3.19/cloud";
     spinner.currentStatus = `checking image ${image}`;
@@ -125,6 +118,23 @@ export async function createAppContainer<
       name,
       "root",
       `size=${options.diskSize}`,
+    ]);
+
+    const appdataDir = `${options.appsDir}/${name}` as AppdataDir<Name>;
+    await Deno.mkdir(appdataDir, { recursive: true });
+    await run(["chown", "-R", `${1_000_000}:${1_000_000}`, appdataDir]); // because Deno.chown is not recursive
+    spinner.currentStatus =
+      `creating bind-mount from host:${appdataDir} to ${name}:/appdata`;
+    await run([
+      "incus",
+      "config",
+      "device",
+      "add",
+      name,
+      "appdata-bind-mount",
+      "disk",
+      `source=${appdataDir}`,
+      `path=/appdata`,
     ]);
   }
   {
