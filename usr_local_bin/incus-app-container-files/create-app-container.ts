@@ -1,8 +1,6 @@
 import { stringify as yaml } from "https://deno.land/std@0.220.1/yaml/stringify.ts";
-import {
-  AbsolutePath,
-  CreateAppContainerOptions,
-} from "./create-app-container-options.ts";
+import { AbsolutePath } from "./absolute-path.ts";
+import { CreateAppContainerOptions } from "./create-app-container-options.ts";
 import { run } from "./deps.ts";
 import { getInstallScript } from "./get-install-script.ts";
 import {
@@ -101,7 +99,10 @@ export async function createAppContainer<
           },
         },
         config: {
-          "security.nesting": "true",
+          "security.idmap.isolated": true,
+          "security.idmap.base": options.idmapBase,
+          "security.idmap.size": options.idmapSize,
+          "security.nesting": true,
           "cloud-init.user-data": "#cloud-config\n" + yaml(userConfig),
           "cloud-init.vendor-data": "#cloud-config\n" + yaml(vendorConfig),
           "cloud-init.network-config": networkConfigYaml,
@@ -122,7 +123,12 @@ export async function createAppContainer<
 
     const appdataDir = `${options.appsDir}/${name}` as AppdataDir<Name>;
     await Deno.mkdir(appdataDir, { recursive: true });
-    await run(["chown", "-R", `${1_000_000}:${1_000_000}`, appdataDir]); // because Deno.chown is not recursive
+    await run([
+      "chown",
+      "-R",
+      `${options.idmapBase}:${options.idmapBase}`,
+      appdataDir,
+    ]); // because Deno.chown is not recursive
     spinner.currentStatus =
       `creating bind-mount from host:${appdataDir} to ${name}:/appdata`;
     await run([

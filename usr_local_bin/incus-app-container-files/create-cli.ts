@@ -1,6 +1,6 @@
+import { isAbsolutePath } from "./absolute-path.ts";
 import {
   CreateAppContainerOptions,
-  isAbsolutePath,
   resolveCreateAppContainerOptions,
 } from "./create-app-container-options.ts";
 import { createAppContainer } from "./create-app-container.ts";

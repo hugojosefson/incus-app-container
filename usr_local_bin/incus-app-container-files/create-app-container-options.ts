@@ -1,4 +1,6 @@
+import { AbsolutePath } from "./absolute-path.ts";
 import { Address, Cidr, createAddress } from "./deps.ts";
+import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "./idmap.ts";
 import { MultiArgument } from "./multi-argument.ts";
 import { Size } from "./size.ts";
 import { resolveSshKeys, SshKey, SshKeyRaw } from "./ssh-key.ts";
@@ -13,10 +15,6 @@ export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   appsDir: AppsDir;
 };
 
-export type AbsolutePath = `/` | `/${string}`;
-export function isAbsolutePath(value: unknown): value is AbsolutePath {
-  return typeof value === "string" && value.startsWith("/");
-}
 export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
   & (
     | { ip: "dhcp" }
@@ -31,6 +29,8 @@ export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
     start: boolean;
     diskSize: Size;
     appsDir: AppsDir;
+    idmapBase: number;
+    idmapSize: number;
   };
 
 const DEFAULT_DISK_SIZE: Size = "10GiB";
@@ -49,6 +49,8 @@ export async function resolveCreateAppContainerOptions<
       start: input.start,
       diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
       appsDir: input.appsDir,
+      idmapBase: await getNextIdmapBaseFor(input.appsDir),
+      idmapSize: IDMAP_BASE_SIZE,
     } as CreateAppContainerOptions<AppsDir>;
   }
 
@@ -67,6 +69,8 @@ export async function resolveCreateAppContainerOptions<
     start: input.start,
     diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
     appsDir,
+    idmapBase: await getNextIdmapBaseFor(appsDir),
+    idmapSize: IDMAP_BASE_SIZE,
   } as CreateAppContainerOptions<AppsDir>;
 }
 
