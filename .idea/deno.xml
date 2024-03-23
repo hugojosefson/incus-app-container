@@ -2,6 +2,6 @@
 <project version="4">
   <component name="DenoSettings">
     <option name="denoInit" value="{&#10;  &quot;enable&quot;: true,&#10;  &quot;lint&quot;: true&#10;}" />
-    <option name="useDenoValue" value="ENABLE" />
+    <option name="useDeno" value="true" />
   </component>
 </project>
