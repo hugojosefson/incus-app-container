@@ -1,5 +1,5 @@
 import { CommandName } from "./create-cli.ts";
-import { parseToml } from "./deps.ts";
+import { paramCase, parseToml } from "./deps.ts";
 
 /**
  * Extracts a table from a parsed TOML config.
@@ -11,6 +11,20 @@ export function getConfigTable<
   Result extends Record<string, unknown>,
 >(config: Record<string, unknown>, tableName?: Table): Partial<Result> {
   return config[tableName ?? ""] ?? {} as Partial<Result>;
+}
+
+export function getArgsFromKeyValues(table: Record<string, unknown>): string[] {
+  return Object.entries(table)
+    .map(([key, value]) => [paramCase(key), value] as [string, unknown])
+    .flatMap(([key, value]) => {
+      if (value === true) {
+        return [`--${key}`];
+      }
+      if (value === false) {
+        return [];
+      }
+      return [`--${key}`, `${value}`];
+    });
 }
 
 /**
@@ -26,15 +40,7 @@ function getArgsFromConfig(
 ): string[] {
   const toml = parseToml(configFileContents);
   const table = getConfigTable(toml, command);
-  return Object.entries(table).flatMap(([key, value]) => {
-    if (value === true) {
-      return [`--${key}`];
-    }
-    if (value === false) {
-      return [];
-    }
-    return [`--${key}`, `${value}`];
-  });
+  return getArgsFromKeyValues(table);
 }
 
 /**

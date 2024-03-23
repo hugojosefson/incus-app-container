@@ -23,3 +23,4 @@ export { default as pPipe } from "npm:p-pipe@4.0.0";
 
 export { default as split } from "npm:argv-split@2.0.1";
 export { parse as parseToml } from "https://deno.land/std@0.220.1/toml/parse.ts";
+export { default as paramCase } from "https://deno.land/x/case@2.2.0/paramCase.ts";
