@@ -29,10 +29,10 @@ export async function createAppContainer<
       pending: "Creating container...",
       done: "Created container.",
     });
-    spinner.currentStatus = "fetching install script for alpine-318";
-    const installScript = await getInstallScript("alpine-318");
+    spinner.currentStatus = "fetching install script for alpine-319-cloud";
+    const installScript = await getInstallScript("alpine-319-cloud");
 
-    spinner.currentStatus = "running install script for alpine-318";
+    spinner.currentStatus = "running install script for alpine-319-cloud";
     const runcmd = [installScript];
 
     const image = "images:alpine/3.19/cloud";

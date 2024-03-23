@@ -5,7 +5,7 @@ packages:
 runcmd:
   - - sh
     - "-c"
-    - "sh <(curl -sSfL https://raw.githubusercontent.com/hugojosefson/incus-app-container/main/usr_local_bin/incus-app-container-files/template/alpine-318-install)"
+    - "sh <(curl -sSfL https://raw.githubusercontent.com/hugojosefson/incus-app-container/main/usr_local_bin/incus-app-container-files/template/alpine-319-cloud-install)"
 ssh_import_id:
   - gh:hugojosefson
 power_state:
