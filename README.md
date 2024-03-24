@@ -24,11 +24,11 @@ that did a similar thing for Proxmox VE.
 - [x] CLI script(s) to easily create a new container/app.
   - [x] Sets up a new subdirectory in `apps`.
   - [x] Puts an example `docker-compose.yml` into the new subdirectory.
-  - [ ] Creates a new container with:
+  - [x] Creates a new container with:
     - [x] a static IP, or DHCP;
     - [x] the new subdirectory as the bind mount;
     - [x] automatic updates of os packages;
-    - [ ] automatic updates of docker images;
+    - [x] automatic updates of docker images;
   - [x] Starts the container (optionally).
 - [x] The containers I create are compatible with Incus' normal tools, and with
       `incus-ui-canonical`.
@@ -50,7 +50,7 @@ that did a similar thing for Proxmox VE.
   - [ ] stops (doesn't start) containers if they have file `<appName>/disabled`.
 - [ ] The service keeps track of its own containers by setting a label on them,
       and only manages containers with that label.
-- [ ] Each `docker-compose.yml` is by default prepared with a service that keeps
+- [x] Each `docker-compose.yml` is by default prepared with a service that keeps
       its docker images up to date. It's a third-party tool, called
       [Watchtower](https://containrrr.dev/watchtower/).
 - [x] Inside each incus app container, there's a service that watches the

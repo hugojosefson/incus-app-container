@@ -296,6 +296,15 @@ EOF
 
 create_file_if_not_exists "${docker_compose_file}" <<EOF
 services:
+  # https://containrrr.dev/watchtower/arguments/
+  watchtower:
+    image: docker.io/containrrr/watchtower
+    environment:
+      - WATCHTOWER_CLEANUP=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # your app here
   app:
     image: docker.io/traefik/whoami
     environment:
