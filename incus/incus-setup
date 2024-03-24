@@ -88,6 +88,7 @@ Then try running this script again, after reboot :)
     curl \
     gnupg \
     ipcalc \
+    bridge-utils \
     lvm2 \
     thin-provisioning-tools \
     wget
