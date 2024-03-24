@@ -11,7 +11,7 @@ export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   nameserver?: string;
   sshKey: MultiArgument<SshKey>;
   start: boolean;
-  diskSize?: Size;
+  diskSize: Size;
   appsDir: AppsDir;
 };
 
@@ -33,8 +33,6 @@ export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
     idmapSize: number;
   };
 
-const DEFAULT_DISK_SIZE: Size = "10GiB";
-
 export async function resolveCreateAppContainerOptions<
   AppsDir extends AbsolutePath,
 >(
@@ -47,7 +45,7 @@ export async function resolveCreateAppContainerOptions<
       ip: "dhcp",
       sshKey,
       start: input.start,
-      diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
+      diskSize: input.diskSize,
       appsDir: input.appsDir,
       idmapBase: await getNextIdmapBaseFor(input.appsDir),
       idmapSize: IDMAP_BASE_SIZE,
@@ -67,7 +65,7 @@ export async function resolveCreateAppContainerOptions<
     nameserver,
     sshKey,
     start: input.start,
-    diskSize: input.diskSize ?? DEFAULT_DISK_SIZE,
+    diskSize: input.diskSize,
     appsDir,
     idmapBase: await getNextIdmapBaseFor(appsDir),
     idmapSize: IDMAP_BASE_SIZE,

@@ -1,4 +1,6 @@
-import { isAbsolutePath } from "./absolute-path.ts";
+import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
+import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
+import { Config } from "./config.ts";
 import {
   CreateAppContainerOptions,
   resolveCreateAppContainerOptions,
@@ -20,7 +22,12 @@ export type CommandName = typeof COMMAND_NAMES[number];
 /**
  * Creates an instance of our CLI.
  */
-export async function createCli() {
+export async function createCli<
+  AppsDir extends AbsolutePath,
+  C extends Config<AppsDir>,
+>(
+  defaults: C = {} as C,
+) {
   const cli = breadc("incus-app-container", {
     description: "Opinionated script for creating Incus containers for apps.",
     version: "0.0.0",
@@ -33,7 +40,8 @@ export async function createCli() {
       {
         description:
           "Network address for the container in CIDR format, for example 10.20.30.40/24; or 'dhcp'.",
-        default: "dhcp",
+        cast: await enforceType(isString),
+        default: defaults?.create?.ip ?? defaults.ip ?? "dhcp",
       },
     )
     .option(
@@ -46,13 +54,14 @@ export async function createCli() {
           "an actual ssh public key, or `gh:${username}` for importing from GitHub, or `local:${username}` for importing from local user.",
           "ssh-key",
         ),
+        default: defaults?.create?.sshKey ?? defaults.sshKey ?? undefined,
       },
     )
     .option(
       "--start",
       {
         description: "Start the container after creating it.",
-        default: false,
+        default: defaults?.create?.start ?? defaults.start ?? false,
         cast: Boolean,
       },
     )
@@ -61,16 +70,17 @@ export async function createCli() {
       {
         description: "Disk size for the container, for example 10GiB.",
         cast: await enforceType(
-          optional(isSize),
+          isSize,
           "a valid size, for example 10GiB",
           "size",
         ),
+        default: defaults?.create?.diskSize ?? defaults.diskSize ?? "10GiB",
       },
     )
     .option(
       "--apps-dir <apps-dir>",
       {
-        default: "/mnt/apps",
+        default: defaults?.create?.appsDir ?? defaults.appsDir ?? "/mnt/apps",
         description:
           "Base directory for where all app containers' appdata are (to be) stored.",
         cast: await enforceType(
@@ -110,7 +120,7 @@ export async function createCli() {
       "--force",
       {
         description: "Force the removal of running instance, if any.",
-        default: false,
+        default: defaults?.delete?.force ?? defaults.force ?? false,
         cast: Boolean,
       },
     )
@@ -118,7 +128,8 @@ export async function createCli() {
       "--delete-appdata",
       {
         description: "Delete the appdata directory as well.",
-        default: false,
+        default: defaults?.delete?.deleteAppdata ?? defaults.deleteAppdata ??
+          false,
         cast: Boolean,
       },
     )
@@ -135,7 +146,7 @@ export async function createCli() {
     .alias("ls")
     .option("--format <format>", {
       description: "Output format.",
-      default: "table",
+      default: defaults?.list?.format ?? defaults.format ?? "table",
       cast: await enforceType(isOutputFormat, OUTPUT_FORMATS, "format"),
     })
     .action(({ format }) => {

@@ -1,6 +1,6 @@
 export { dirname } from "https://deno.land/std@0.220.1/path/dirname.ts";
 
-export { camelCase } from "https://deno.land/x/case@2.2.0/mod.ts";
+export { default as camelCase } from "https://deno.land/x/case@2.2.0/camelCase.ts";
 export { Select } from "https://deno.land/x/cliffy@v1.0.0-rc.3/prompt/select.ts";
 export type { SelectOptions } from "https://deno.land/x/cliffy@v1.0.0-rc.3/prompt/select.ts";
 export { fetch as fetchFile } from "https://deno.land/x/file_fetch@0.2.0/mod.ts";
@@ -23,4 +23,3 @@ export { default as pPipe } from "npm:p-pipe@4.0.0";
 
 export { default as split } from "npm:argv-split@2.0.1";
 export { parse as parseToml } from "https://deno.land/std@0.220.1/toml/parse.ts";
-export { default as paramCase } from "https://deno.land/x/case@2.2.0/paramCase.ts";

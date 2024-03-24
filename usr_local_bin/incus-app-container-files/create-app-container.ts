@@ -62,15 +62,19 @@ export async function createAppContainer<
     const userConfig = {};
 
     spinner.currentStatus = "building cloud-init network config";
-    const networkConfigYaml = options.ip === "dhcp" ? "DHCP on eth0" : yaml({
+    const networkConfigYaml = yaml({
       network: {
         version: 2,
         ethernets: {
-          eth0: {
-            addresses: [options.ip.cidr],
-            routes: [{ to: "0.0.0.0/0", via: options.gateway.address }],
-            nameservers: { addresses: [options.nameserver.address] },
-          },
+          eth0: options.ip === "dhcp"
+            ? {
+              dhcp4: true,
+            }
+            : {
+              addresses: [options.ip.cidr],
+              routes: [{ to: "0.0.0.0/0", via: options.gateway.address }],
+              nameservers: { addresses: [options.nameserver.address] },
+            },
         },
       },
     });
