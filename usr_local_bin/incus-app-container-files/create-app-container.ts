@@ -2,7 +2,7 @@ import { stringify as yaml } from "https://deno.land/std@0.220.1/yaml/stringify.
 import { AbsolutePath } from "./absolute-path.ts";
 import { CreateAppContainerOptions } from "./create-app-container-options.ts";
 import { run } from "./deps.ts";
-import { getInstallScript } from "./get-install-script.ts";
+// import { getInstallScript } from "./get-install-script.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -27,12 +27,6 @@ export async function createAppContainer<
       pending: "Creating container...",
       done: "Created container.",
     });
-    spinner.currentStatus = "fetching install script for alpine-319-cloud";
-    const installScript = await getInstallScript("alpine-319-cloud");
-
-    spinner.currentStatus = "running install script for alpine-319-cloud";
-    const runcmd = [installScript];
-
     const image = "images:alpine/3.19/cloud";
     spinner.currentStatus = `checking image ${image}`;
     await run(["incus", "image", "info", image]);
@@ -47,11 +41,6 @@ export async function createAppContainer<
           nameservers: [options.nameserver.address],
         },
       }),
-      packages: [
-        "bash",
-        "curl",
-      ],
-      runcmd,
       power_state: {
         mode: "poweroff",
         timeout: 30,
@@ -161,7 +150,62 @@ export async function createAppContainer<
       done: `Finished cloud-init.`,
     },
   );
-  await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+  {
+    using spinner = new StatusSpinnerResource(name, {
+      pending: "Running install script...",
+      done: "Ran install script.",
+    });
+    spinner.currentStatus = "Fetching install script for alpine-319-cloud";
+    // const installScript = await getInstallScript("alpine-319-cloud");
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+    await run(["incus", "start", name]);
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
+
+    spinner.currentStatus = "Pushing install script for alpine-319-cloud...";
+    await run([
+      "incus",
+      "file",
+      "push",
+      import.meta.dirname + "/template/alpine-319-cloud-install",
+      `${name}/usr/local/bin/`,
+      "--mode",
+      "0755",
+    ]);
+
+    spinner.currentStatus = "Waiting for network...";
+    await run([
+      "incus",
+      "exec",
+      name,
+      "--",
+      "sh",
+      "-c",
+      "until ping -c1 one.one.one.one; do sleep 0.2; done",
+    ]);
+    await run([
+      "incus",
+      "exec",
+      name,
+      "--",
+      "sh",
+      "-c",
+      "until apk update --no-cache; do sleep 0.5; done",
+    ]);
+
+    spinner.currentStatus = "Running install script for alpine-319-cloud...";
+    await run([
+      "incus",
+      "exec",
+      name,
+      "--",
+      "alpine-319-cloud-install",
+    ]);
+
+    spinner.currentStatus =
+      "Finished running install script for alpine-319-cloud. Stopping container...";
+    await run(["incus", "stop", name]);
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+  }
 
   return {
     name,
