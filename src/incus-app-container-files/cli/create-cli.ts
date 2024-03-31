@@ -1,5 +1,6 @@
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
+import { setupJailmaker } from "./commands/setup-jailmaker/mod.ts";
 import { Config } from "./config.ts";
 import { breadc, isString, optionalTypeGuard, run } from "../deps.ts";
 import {
@@ -27,6 +28,7 @@ export const COMMAND_NAMES = [
   "delete",
   "list",
   "setup-incus",
+  "setup-jailmaker",
 ] as const;
 export type CommandName = typeof COMMAND_NAMES[number];
 
@@ -199,6 +201,37 @@ export async function createCli<
       },
     )
     .action(setupIncus);
+
+  cli
+    .command("setup-jailmaker", "Setup Jailmaker on this machine.")
+    .option(
+      "--dry-run",
+      {
+        description:
+          "Do not actually install or configure anything. Output the preseed to stdout.",
+        cast: Boolean,
+        default: defaults?.["setup-jailmaker"]?.dryRun ?? defaults.dryRun ??
+          false,
+      },
+    )
+    .option(
+      "--pool <pool>",
+      {
+        description: "ZFS pool to use for the jailmaker dataset.",
+        cast: await enforceType(optionalTypeGuard(isString)),
+        default: defaults?.["setup-jailmaker"]?.pool ?? defaults.pool,
+      },
+    )
+    .option(
+      "--dataset <dataset>",
+      {
+        description: "Dataset to use for the jailmaker.",
+        cast: await enforceType(isString),
+        default: defaults?.["setup-jailmaker"]?.dataset ?? defaults.dataset ??
+          "jailmaker",
+      },
+    )
+    .action(setupJailmaker);
 
   return cli;
 }
