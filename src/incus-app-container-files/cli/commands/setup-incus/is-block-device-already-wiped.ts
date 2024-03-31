@@ -1,5 +1,5 @@
 import { run } from "../../../deps.ts";
-import { die } from "./die.ts";
+import { die } from "../../die.ts";
 
 export async function isBlockDeviceAlreadyWiped(
   poolDisk: string,

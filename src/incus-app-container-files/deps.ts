@@ -1,7 +1,11 @@
 // std
+export { basename } from "https://deno.land/std@0.222.1/path/basename.ts";
 export { dirname } from "https://deno.land/std@0.222.1/path/dirname.ts";
 export { parse as parseToml } from "https://deno.land/std@0.222.1/toml/parse.ts";
-export { parse as parseCsv } from "https://deno.land/std@0.222.1/csv/parse.ts";
+export {
+  parse as parseCsv,
+  type ParseOptions,
+} from "https://deno.land/std@0.222.1/csv/parse.ts";
 export { stringify as stringifyYaml } from "https://deno.land/std@0.222.1/yaml/stringify.ts";
 export { Spinner } from "https://deno.land/std@0.222.1/cli/spinner.ts";
 export { mapValues } from "https://deno.land/std@0.222.1/collections/map_values.ts";
@@ -25,6 +29,7 @@ export type {
 // x/fns
 export { s } from "https://deno.land/x/fns@1.1.1/string/s.ts";
 export { isString } from "https://deno.land/x/fns@1.1.1/string/is-string.ts";
+export { swallow } from "https://deno.land/x/fns@1.1.1/fn/swallow.ts";
 
 // x/fns@unstable
 export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";

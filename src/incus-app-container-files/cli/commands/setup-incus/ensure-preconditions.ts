@@ -1,4 +1,4 @@
-import { die } from "./die.ts";
+import { die } from "../../die.ts";
 import { ensureInstalledPackages } from "./ensure-installed-packages.ts";
 import { getIncusPackages } from "./get-incus-packages.ts";
 import { isBlockDeviceAlreadyWiped } from "./is-block-device-already-wiped.ts";
