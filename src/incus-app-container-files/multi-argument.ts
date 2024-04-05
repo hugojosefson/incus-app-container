@@ -20,8 +20,16 @@ export async function resolveMultiArgument<T>(
 }
 
 export type GetterOr<T> = T | (() => T);
+
 export type PromiseOr<T> = T | Promise<T>;
+
 export type AsyncGetterOr<T> = GetterOr<PromiseOr<T>>;
+
 export type MultiArgument<T> = AsyncGetterOr<
-  Readonly<T[] | Set<T> | T> | undefined
+  | undefined
+  | Readonly<
+    | T[]
+    | Set<T>
+    | T
+  >
 >;
