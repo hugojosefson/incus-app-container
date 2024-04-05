@@ -1,5 +1,9 @@
 import { Spinner } from "https://deno.land/std@0.220.1/cli/spinner.ts";
-import { StatusMessages } from "./incus-container-status.ts";
+
+export type StatusMessages = {
+  pending: string;
+  done?: string;
+};
 
 function calculateMessage(
   name: string,
