@@ -1,9 +1,10 @@
-import { AbsolutePath } from "./absolute-path.ts";
-import { Address, Cidr, createAddress } from "./deps.ts";
-import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "./idmap.ts";
-import { MultiArgument } from "./multi-argument.ts";
-import { Size } from "./size.ts";
-import { resolveSshKeys, SshKey, SshKeyRaw } from "./ssh-key.ts";
+import { AbsolutePath } from "../../absolute-path.ts";
+import { firstIp } from "../../cidr.ts";
+import { Address, Cidr, createAddress } from "../../deps.ts";
+import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "../../idmap.ts";
+import { MultiArgument } from "../../multi-argument.ts";
+import { Size } from "../../size.ts";
+import { resolveSshKeys, SshKey, SshKeyRaw } from "../../ssh-key.ts";
 
 export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   ip: string;
@@ -70,12 +71,4 @@ export async function resolveCreateAppContainerOptions<
     idmapBase: await getNextIdmapBaseFor(appsDir),
     idmapSize: IDMAP_BASE_SIZE,
   } as CreateAppContainerOptions<AppsDir>;
-}
-
-export function firstIp(cidr: Cidr): Address {
-  const ip: undefined | string = cidr.toArray({ from: 1, limit: 1 }).at(0);
-  if (!ip) {
-    throw new Error(`Could not get first IP from ${cidr}`);
-  }
-  return createAddress(ip);
 }

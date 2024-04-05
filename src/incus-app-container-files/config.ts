@@ -1,5 +1,5 @@
 import { AbsolutePath } from "./absolute-path.ts";
-import { CreateAppContainerInputOptions } from "./create-app-container-options.ts";
+import { CreateAppContainerInputOptions } from "./cli/commands/create-app-container-options.ts";
 import { CommandName } from "./cli/create-cli.ts";
 import { createDeepMapKeys } from "./deep-map.ts";
 import { camelCase, parseToml } from "./deps.ts";
@@ -7,23 +7,12 @@ import { OutputFormat } from "./output-format.ts";
 
 const CONFIG_FILE = `/etc/default/incus-app-container`;
 
-export type CreateInputOptions<AppsDir extends AbsolutePath> =
-  & CreateAppContainerInputOptions<AppsDir>
-  & { sshKey: string };
-
 export type Config<AppsDir extends AbsolutePath = AbsolutePath> =
   & Partial<InputOptions<"create", AppsDir>>
   & Partial<InputOptions<"delete", AppsDir>>
   & Partial<InputOptions<"list", AppsDir>>
   & Partial<InputOptionsPerCommand<AppsDir>>;
 
-export type DeleteInputOptions = {
-  force: boolean;
-  deleteAppdata: boolean;
-};
-export type ListInputOptions = {
-  format: OutputFormat;
-};
 export type InputOptions<C extends CommandName, AppsDir extends AbsolutePath> =
   C extends "create" ? CreateInputOptions<AppsDir>
     : C extends "delete" ? DeleteInputOptions
@@ -32,6 +21,19 @@ export type InputOptions<C extends CommandName, AppsDir extends AbsolutePath> =
 
 export type InputOptionsPerCommand<AppsDir extends AbsolutePath> = {
   [K in CommandName]: InputOptions<K, AppsDir>;
+};
+
+export type CreateInputOptions<AppsDir extends AbsolutePath> =
+  & CreateAppContainerInputOptions<AppsDir>
+  & { sshKey: string };
+
+export type DeleteInputOptions = {
+  force: boolean;
+  deleteAppdata: boolean;
+};
+
+export type ListInputOptions = {
+  format: OutputFormat;
 };
 
 export async function getConfig<
@@ -51,4 +53,7 @@ export async function getConfig<
   }
 }
 
+/**
+ * Converts all keys in a deep map to camelCase.
+ */
 export const camelCaseKeys = createDeepMapKeys(camelCase);

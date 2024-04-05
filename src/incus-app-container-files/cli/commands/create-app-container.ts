@@ -1,12 +1,12 @@
 import { stringify as yaml } from "https://deno.land/std@0.220.1/yaml/stringify.ts";
-import { AbsolutePath } from "./absolute-path.ts";
+import { AbsolutePath } from "../../absolute-path.ts";
 import { CreateAppContainerOptions } from "./create-app-container-options.ts";
-import { run } from "./deps.ts";
+import { run } from "../../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
-} from "./incus-container-status.ts";
-import { StatusSpinnerResource } from "./status-spinner-resource.ts";
+} from "../../incus-container-status.ts";
+import { StatusSpinnerResource } from "../../status-spinner-resource.ts";
 
 export type AppdataDir<Name extends string> = `${string | ""}/apps/${Name}`;
 export type AppContainer<Name extends string> = {

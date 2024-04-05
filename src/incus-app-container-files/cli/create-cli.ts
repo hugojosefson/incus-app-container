@@ -1,20 +1,26 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
 import { AbsolutePath, isAbsolutePath } from "../absolute-path.ts";
 import { Config } from "../config.ts";
-import {
-  CreateAppContainerOptions,
-  resolveCreateAppContainerOptions,
-} from "../create-app-container-options.ts";
-import { createAppContainer } from "../create-app-container.ts";
-import { breadc, run, s } from "../deps.ts";
+import { breadc, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
 } from "../incus-container-status.ts";
-import { isOutputFormat, OUTPUT_FORMATS } from "../output-format.ts";
+import {
+  isOutputFormat,
+  OUTPUT_FORMATS,
+  OutputFormat,
+} from "../output-format.ts";
 import { isSize } from "../size.ts";
 import { isSshKey } from "../ssh-key.ts";
 import { enforceType, optional } from "../type-guard.ts";
+import {
+  CreateAppContainerOptions,
+  resolveCreateAppContainerOptions,
+} from "./commands/create-app-container-options.ts";
+import { createAppContainer } from "./commands/create-app-container.ts";
+import { deleteAppContainer } from "./commands/delete-app-container.ts";
+import { listAppContainers } from "./commands/list-app-containers.ts";
 
 export const COMMAND_NAMES = ["create", "delete", "list"] as const;
 export type CommandName = typeof COMMAND_NAMES[number];
@@ -134,11 +140,7 @@ export async function createCli<
       },
     )
     .action((containerName: string, { deleteAppdata }) => {
-      console.log(
-        `Deleting container ${s(containerName)}${
-          deleteAppdata ? " and its appdata" : ""
-        }...`,
-      );
+      deleteAppContainer(containerName, deleteAppdata);
     });
 
   cli
@@ -149,8 +151,8 @@ export async function createCli<
       default: defaults?.list?.format ?? defaults.format ?? "table",
       cast: await enforceType(isOutputFormat, OUTPUT_FORMATS, "format"),
     })
-    .action(({ format }) => {
-      console.log(`Listing containers as ${format}...`);
+    .action(({ format }: { format: OutputFormat }) => {
+      listAppContainers(format);
     });
 
   return cli;
