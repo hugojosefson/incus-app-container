@@ -1,9 +1,9 @@
-import { AbsolutePath } from "../absolute-path.ts";
+import { AbsolutePath } from "./absolute-path.ts";
 import { CreateAppContainerInputOptions } from "./commands/create-app-container/options.ts";
 import { CommandName } from "./create-cli.ts";
 import { createDeepMapKeys } from "../deep-map.ts";
 import { camelCase, parseToml } from "../deps.ts";
-import { OutputFormat } from "../output-format.ts";
+import { OutputFormat } from "./output-format.ts";
 
 const CONFIG_FILE = `/etc/default/incus-app-container`;
 

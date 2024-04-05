@@ -1,10 +1,10 @@
 import { jsonRun } from "https://deno.land/x/run_simple@2.3.0/src/run.ts";
 
-import { flipStringToStringRecord } from "./fn.ts";
+import { flipStringToStringRecord } from "../fn.ts";
 import {
   StatusMessages,
   StatusSpinnerResource,
-} from "./status-spinner-resource.ts";
+} from "../status-spinner-resource.ts";
 
 export const INCUS_CONTAINER_STATUS_NAMES = {
   "100": "Operation created",
@@ -24,10 +24,13 @@ export const INCUS_CONTAINER_STATUS_NAMES = {
   "400": "Failure",
   "401": "Cancelled",
 } as const;
+
 export type IncusContainerStatusCode =
   keyof typeof INCUS_CONTAINER_STATUS_NAMES;
+
 export type IncusContainerStatusName =
   typeof INCUS_CONTAINER_STATUS_NAMES[IncusContainerStatusCode];
+
 export const INCUS_CONTAINER_STATUS_CODES = flipStringToStringRecord(
   INCUS_CONTAINER_STATUS_NAMES,
 );

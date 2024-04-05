@@ -1,18 +1,18 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
-import { AbsolutePath, isAbsolutePath } from "../absolute-path.ts";
+import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
 import { Config } from "./config.ts";
 import { breadc, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
-} from "../incus-container-status.ts";
+} from "./incus-container-status.ts";
 import {
   isOutputFormat,
   OUTPUT_FORMATS,
   OutputFormat,
-} from "../output-format.ts";
-import { isSize } from "../size.ts";
-import { isSshKey } from "../ssh-key.ts";
+} from "./output-format.ts";
+import { isSize } from "./commands/create-app-container/size.ts";
+import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
 import { enforceType, optional } from "../type-guard.ts";
 import {
   CreateAppContainerOptions,
