@@ -1,6 +1,6 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
 import { AbsolutePath, isAbsolutePath } from "../absolute-path.ts";
-import { Config } from "../config.ts";
+import { Config } from "./config.ts";
 import { breadc, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
@@ -17,8 +17,8 @@ import { enforceType, optional } from "../type-guard.ts";
 import {
   CreateAppContainerOptions,
   resolveCreateAppContainerOptions,
-} from "./commands/create-app-container-options.ts";
-import { createAppContainer } from "./commands/create-app-container.ts";
+} from "./commands/create-app-container/options.ts";
+import { createAppContainer } from "./commands/create-app-container/mod.ts";
 import { deleteAppContainer } from "./commands/delete-app-container.ts";
 import { listAppContainers } from "./commands/list-app-containers.ts";
 
