@@ -1,6 +1,6 @@
 import { describe, it } from "https://deno.land/std@0.220.1/testing/bdd.ts";
 import { assertEquals } from "https://deno.land/std@0.220.1/assert/assert_equals.ts";
-import { getNextIdmapBaseAbove } from "../usr_local_bin/incus-app-container-files/idmap.ts";
+import { getNextIdmapBaseAbove } from "../src/incus-app-container-files/idmap.ts";
 
 const cases = [
   [0, 100_000],

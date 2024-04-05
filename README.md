@@ -82,7 +82,7 @@ chmod +x incus-setup
 
 ```sh
 curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
-  | tar -xzvC /usr/local/bin --wildcards "*/usr_local_bin/" --strip-components=2
+  | tar -xzvC /usr/local/bin --wildcards "*/src/" --strip-components=2
 ```
 
 <details>
