@@ -22,3 +22,5 @@ export { Cidr };
 export { default as split } from "npm:argv-split@2.0.1";
 export { parse as parseToml } from "https://deno.land/std@0.220.1/toml/parse.ts";
 export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";
+export { type Transformer } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/fn/transformer.ts";
+export { createDeepMapKeys } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/object/deep-map-keys.ts";

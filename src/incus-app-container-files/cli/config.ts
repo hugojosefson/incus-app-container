@@ -1,7 +1,7 @@
 import { AbsolutePath } from "./absolute-path.ts";
 import { CreateAppContainerInputOptions } from "./commands/create-app-container/options.ts";
 import { CommandName } from "./create-cli.ts";
-import { createDeepMapKeys } from "../deep-map.ts";
+import { createDeepMapKeys } from "../deps.ts";
 import { camelCase, parseToml } from "../deps.ts";
 import { OutputFormat } from "./output-format.ts";
 
