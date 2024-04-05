@@ -39,13 +39,6 @@ export async function enforceType<T>(
   };
 }
 
-export function isArrayOf<T>(
-  typeGuard: (value: unknown) => value is T,
-): (value: unknown) => value is T[] {
-  return (value: unknown): value is T[] =>
-    Array.isArray(value) && value.every(typeGuard);
-}
-
 export function optional<T>(
   typeGuard: (value: unknown) => value is T,
 ): (value: unknown) => value is T | undefined {
