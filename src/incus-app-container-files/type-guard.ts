@@ -38,10 +38,3 @@ export async function enforceType<T>(
     return value;
   };
 }
-
-export function optional<T>(
-  typeGuard: (value: unknown) => value is T,
-): (value: unknown) => value is T | undefined {
-  return (value: unknown): value is T | undefined =>
-    value === undefined || typeGuard(value);
-}

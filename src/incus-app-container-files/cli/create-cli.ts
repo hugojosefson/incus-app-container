@@ -1,7 +1,7 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
 import { Config } from "./config.ts";
-import { breadc, run } from "../deps.ts";
+import { breadc, optionalTypeGuard, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -13,7 +13,7 @@ import {
 } from "./output-format.ts";
 import { isSize } from "./commands/create-app-container/size.ts";
 import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
-import { enforceType, optional } from "../type-guard.ts";
+import { enforceType } from "../type-guard.ts";
 import {
   CreateAppContainerOptions,
   resolveCreateAppContainerOptions,
@@ -56,7 +56,7 @@ export async function createCli<
         description:
           "Public ssh key(s) to add to the container's authorized_keys file. Actual key, or `gh:${username}` for importing from GitHub, or `local:${username}` for importing from local user.",
         cast: await enforceType(
-          optional(isSshKey),
+          optionalTypeGuard(isSshKey),
           "an actual ssh public key, or `gh:${username}` for importing from GitHub, or `local:${username}` for importing from local user.",
           "ssh-key",
         ),
