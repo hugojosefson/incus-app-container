@@ -7,6 +7,7 @@ export type SizeUnitBinary =
   | "EiB"
   | "ZiB"
   | "YiB";
+
 export type SizeUnitMetric =
   | "KB"
   | "MB"
@@ -16,11 +17,13 @@ export type SizeUnitMetric =
   | "EB"
   | "ZB"
   | "YB";
+
 export type SizeUnit =
   | SizeUnitBinary
   | SizeUnitMetric;
 
-export type Size = `${number}${SizeUnit}`;
+export type Size<T extends SizeUnit = SizeUnit> = `${number}${T}`;
+
 export function isSize(value: unknown): value is Size {
   return typeof value === "string" && /^(\d+)([KMGTPEZY]i?B)$/.test(value);
 }
