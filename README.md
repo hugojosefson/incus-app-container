@@ -70,19 +70,11 @@ that did a similar thing for Proxmox VE.
   interface in `/etc/network/interfaces` with `dhcp`, that we can convert.
 - A subnet or several, to expose the containers on.
 
-## Install Incus
-
-```sh
-curl -sSfL --remote-name https://raw.githubusercontent.com/hugojosefson/incus-app-container/main/incus/incus-setup
-chmod +x incus-setup
-./incus-setup
-```
-
 ## Install incus-app-container
 
 ```sh
 curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
-  | tar -xzvC /usr/local/bin --wildcards "*/src/" --strip-components=2
+  | tar -xzv --wildcards "*/src/" --strip-components=2
 ```
 
 <details>
@@ -111,6 +103,12 @@ killall -HUP docker-compose-watchdog
 ```
 
 </details>
+
+## Install incus
+
+```sh
+./incus-app-container setup-incus --help
+```
 
 ## License
 

@@ -1,5 +1,6 @@
 import { AbsolutePath } from "./absolute-path.ts";
 import { CreateAppContainerInputOptions } from "./commands/create-app-container/options.ts";
+import { SetupIncusOptions } from "./commands/setup-incus/mod.ts";
 import { CommandName } from "./create-cli.ts";
 import { createDeepMapKeys } from "../deps.ts";
 import { camelCase, parseToml } from "../deps.ts";
@@ -11,12 +12,14 @@ export type Config<AppsDir extends AbsolutePath = AbsolutePath> =
   & Partial<InputOptions<"create", AppsDir>>
   & Partial<InputOptions<"delete", AppsDir>>
   & Partial<InputOptions<"list", AppsDir>>
+  & Partial<InputOptions<"setup-incus", AppsDir>>
   & Partial<InputOptionsPerCommand<AppsDir>>;
 
 export type InputOptions<C extends CommandName, AppsDir extends AbsolutePath> =
   C extends "create" ? CreateInputOptions<AppsDir>
     : C extends "delete" ? DeleteInputOptions
     : C extends "list" ? ListInputOptions
+    : C extends "setup-incus" ? SetupIncusOptions
     : never;
 
 export type InputOptionsPerCommand<AppsDir extends AbsolutePath> = {
