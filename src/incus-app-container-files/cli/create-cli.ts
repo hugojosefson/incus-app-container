@@ -1,5 +1,6 @@
 import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
+import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { Config } from "./config.ts";
 import { breadc, optionalTypeGuard, run } from "../deps.ts";
 import {
@@ -22,7 +23,12 @@ import { createAppContainer } from "./commands/create-app-container/mod.ts";
 import { deleteAppContainer } from "./commands/delete-app-container.ts";
 import { listAppContainers } from "./commands/list-app-containers.ts";
 
-export const COMMAND_NAMES = ["create", "delete", "list"] as const;
+export const COMMAND_NAMES = [
+  "create",
+  "delete",
+  "list",
+  "setup-incus",
+] as const;
 export type CommandName = typeof COMMAND_NAMES[number];
 
 /**
@@ -154,6 +160,46 @@ export async function createCli<
     .action(({ format }: { format: OutputFormat }) => {
       listAppContainers(format);
     });
+
+  cli
+    .command("setup-incus", "Setup Incus on this machine.")
+    .option(
+      "--dry-run",
+      {
+        description:
+          "Do not actually install or configure anything. Output the preseed to stdout.",
+        cast: Boolean,
+        default: defaults?.["setup-incus"]?.dryRun ?? defaults.dryRun ?? false,
+      },
+    )
+    .option(
+      "--pool-disk <pool-disk>",
+      {
+        description: "Empty block device for the storage pool.",
+        cast: await enforceType(isString),
+        default: defaults?.["setup-incus"]?.poolDisk ?? defaults.poolDisk ??
+          "/dev/vdb",
+      },
+    )
+    .option(
+      "--bridge-name <bridge-name>",
+      {
+        description: "Name of the network bridge device.",
+        cast: await enforceType(isString),
+        default: defaults?.["setup-incus"]?.bridgeName ?? defaults.bridgeName ??
+          "br0",
+      },
+    )
+    .option(
+      "--bridge-cidr <bridge-cidr>",
+      {
+        description: "IP/net or 'dhcp' to use for the bridge.",
+        cast: await enforceType(isString),
+        default: defaults?.["setup-incus"]?.bridgeCidr ?? defaults.bridgeCidr ??
+          "dhcp",
+      },
+    )
+    .action(setupIncus);
 
   return cli;
 }
