@@ -1,5 +1,4 @@
-import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
-import { s } from "../../../deps.ts";
+import { isString, s } from "../../../deps.ts";
 import {
   MultiArgument,
   resolveMultiArgument,

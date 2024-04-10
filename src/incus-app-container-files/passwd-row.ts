@@ -1,4 +1,4 @@
-import { run } from "https://deno.land/x/run_simple@2.3.0/src/run.ts";
+import { run } from "./deps.ts";
 
 export type PasswdRow = {
   username: string;

@@ -1,4 +1,4 @@
-import { s } from "https://deno.land/x/fns@1.1.0/string/s.ts";
+import { s } from "../../deps.ts";
 
 export function deleteAppContainer(
   containerName: string,

@@ -1,7 +1,6 @@
-import { stringify as yaml } from "https://deno.land/std@0.220.1/yaml/stringify.ts";
 import { AbsolutePath } from "../../absolute-path.ts";
 import { CreateAppContainerOptions } from "./options.ts";
-import { run } from "../../../deps.ts";
+import { run, stringifyYaml } from "../../../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -50,7 +49,7 @@ export async function createAppContainer<
     const userConfig = {};
 
     spinner.currentStatus = "building cloud-init network config";
-    const networkConfigYaml = yaml({
+    const networkConfigYaml = stringifyYaml({
       network: {
         version: 2,
         ethernets: {
@@ -76,7 +75,7 @@ export async function createAppContainer<
       image,
       name,
     ], {
-      stdin: yaml({
+      stdin: stringifyYaml({
         description: "By incus-app-container",
         devices: {
           eth0: {
@@ -95,8 +94,9 @@ export async function createAppContainer<
           "security.idmap.base": options.idmapBase,
           "security.idmap.size": options.idmapSize,
           "security.nesting": true,
-          "cloud-init.user-data": "#cloud-config\n" + yaml(userConfig),
-          "cloud-init.vendor-data": "#cloud-config\n" + yaml(vendorConfig),
+          "cloud-init.user-data": "#cloud-config\n" + stringifyYaml(userConfig),
+          "cloud-init.vendor-data": "#cloud-config\n" +
+            stringifyYaml(vendorConfig),
           "cloud-init.network-config": networkConfigYaml,
         },
       }),
