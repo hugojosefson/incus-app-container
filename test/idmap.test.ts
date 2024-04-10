@@ -1,5 +1,4 @@
-import { describe, it } from "https://deno.land/std@0.220.1/testing/bdd.ts";
-import { assertEquals } from "https://deno.land/std@0.220.1/assert/assert_equals.ts";
+import { assertEquals, describe, it } from "./deps.ts";
 import { getNextIdmapBaseAbove } from "../src/incus-app-container-files/cli/commands/create-app-container/idmap.ts";
 
 const cases = [
