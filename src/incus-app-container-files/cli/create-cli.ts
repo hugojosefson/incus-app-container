@@ -1,8 +1,7 @@
-import { isString } from "https://deno.land/x/fns@1.1.0/string/is-string.ts";
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { Config } from "./config.ts";
-import { breadc, optionalTypeGuard, run } from "../deps.ts";
+import { breadc, isString, optionalTypeGuard, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,

@@ -1,4 +1,4 @@
-import { jsonRun } from "https://deno.land/x/run_simple@2.3.0/src/run.ts";
+import { jsonRun } from "../deps.ts";
 
 import { flipStringToStringRecord } from "../flip-record.ts";
 import {

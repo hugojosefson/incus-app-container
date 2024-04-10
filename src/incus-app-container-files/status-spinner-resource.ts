@@ -1,4 +1,4 @@
-import { Spinner } from "https://deno.land/std@0.220.1/cli/spinner.ts";
+import { Spinner } from "./deps.ts";
 
 export type StatusMessages = {
   pending: string;
