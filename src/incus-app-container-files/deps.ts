@@ -1,10 +1,10 @@
 // std
-export { dirname } from "https://deno.land/std@0.221.0/path/dirname.ts";
-export { parse as parseToml } from "https://deno.land/std@0.221.0/toml/parse.ts";
-export { parse as parseCsv } from "https://deno.land/std@0.221.0/csv/parse.ts";
-export { stringify as stringifyYaml } from "https://deno.land/std@0.221.0/yaml/stringify.ts";
-export { Spinner } from "https://deno.land/std@0.221.0/cli/spinner.ts";
-export { mapValues } from "https://deno.land/std@0.221.0/collections/map_values.ts";
+export { dirname } from "https://deno.land/std@0.222.1/path/dirname.ts";
+export { parse as parseToml } from "https://deno.land/std@0.222.1/toml/parse.ts";
+export { parse as parseCsv } from "https://deno.land/std@0.222.1/csv/parse.ts";
+export { stringify as stringifyYaml } from "https://deno.land/std@0.222.1/yaml/stringify.ts";
+export { Spinner } from "https://deno.land/std@0.222.1/cli/spinner.ts";
+export { mapValues } from "https://deno.land/std@0.222.1/collections/map_values.ts";
 
 // x
 export { fetch as fetchFile } from "https://deno.land/x/file_fetch@0.2.0/mod.ts";
