@@ -30,6 +30,12 @@ export type {
 export { s } from "https://deno.land/x/fns@1.1.1/string/s.ts";
 export { isString } from "https://deno.land/x/fns@1.1.1/string/is-string.ts";
 export { swallow } from "https://deno.land/x/fns@1.1.1/fn/swallow.ts";
+export {
+  global,
+  sequence,
+  startWith,
+  unicode,
+} from "https://deno.land/x/fns@1.1.1/string/regex.ts";
 
 // x/fns@unstable
 export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";
