@@ -4,7 +4,7 @@ import { StorageDataset } from "../../../truenas/storage-dataset.ts";
 import { SetupJailmakerOptions } from "./setup-jailmaker-options.ts";
 
 const SCRIPT_URL =
-  "https://raw.githubusercontent.com/Jip-Hop/jailmaker/main/jlmkr.py";
+  "https://raw.githubusercontent.com/Jip-Hop/jailmaker/develop/jlmkr.py";
 const SCRIPT_FILENAME = basename(SCRIPT_URL);
 
 export async function ensureJailmakerScript(
