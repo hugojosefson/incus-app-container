@@ -5,7 +5,12 @@ export async function addZabblyRepo(): Promise<void> {
   const key = await fetch("https://pkgs.zabbly.com/key.asc").then((r) =>
     r.text()
   );
-  if (!key.includes("4EFC 5906 96CB 15B8 7C73  A3AD 82CC 8797 C838 DCFD")) {
+  const fingerprint = await run("gpg --show-keys --fingerprint", {
+    stdin: key,
+  });
+  if (
+    !fingerprint.includes("4EFC 5906 96CB 15B8 7C73  A3AD 82CC 8797 C838 DCFD")
+  ) {
     die(
       "The fingerprint of the zabbly repository key does not match the expected value",
     );
