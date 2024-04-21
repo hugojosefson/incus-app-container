@@ -9,7 +9,7 @@ export async function calculateCidrMin(
 ): Promise<string | undefined> {
   const output = await run(["ipcalc", "--nocolor", "--nobinary", cidr]);
   return output.split("\n").find((line) => line.startsWith("HostMin:"))?.split(
-    " ",
+    /\s+/,
     2,
   )[1];
 }
