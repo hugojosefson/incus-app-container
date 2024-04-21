@@ -22,9 +22,9 @@ export async function convertToBridge(
     await run([
       "sed",
       "-E",
-      `s|^iface ([^ ]+) inet dhcp$|iface \\1 inet manual\n\nauto ${bridgeName}\niface ${bridgeName} inet static\nbridge_ports \\1\naddress ${bridgeCidr}\ngateway ${
-        calculateCidrMin(bridgeCidr)
-      }\nhwaddress \\$(cat /sys/class/net/\\1/address)|`,
+      `s|^iface ([^ ]+) inet dhcp$|iface \\1 inet manual\n\nauto ${bridgeName}\niface ${bridgeName} inet static\nbridge_ports \\1\naddress ${bridgeCidr}\ngateway ${await calculateCidrMin(
+        bridgeCidr,
+      )}\nhwaddress \\$(cat /sys/class/net/\\1/address)|`,
       "-i",
       "/etc/network/interfaces",
     ]);
