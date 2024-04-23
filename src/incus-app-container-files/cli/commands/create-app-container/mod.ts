@@ -83,9 +83,16 @@ export async function createAppContainer<
         devices: {
           eth0: {
             name: "eth0",
-            nictype: options.vlan ? "macvlan" : "bridged",
-            parent: options.vlan ? `br0.${options.vlan}` : "br0",
             type: "nic",
+            ...(options.vlan
+              ? {
+                nictype: "macvlan",
+                parent: `br0.${options.vlan}`,
+              }
+              : {
+                nictype: "bridged",
+                parent: "br0",
+              }),
           },
           root: {
             path: "/",
