@@ -37,6 +37,7 @@ Then try running this script again, after reboot :)
     "gnupg",
     "ipcalc",
     "bridge-utils",
+    "openvswitch-switch",
     "lvm2",
     "thin-provisioning-tools",
     "wget",

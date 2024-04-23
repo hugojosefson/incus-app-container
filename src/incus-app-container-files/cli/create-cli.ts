@@ -1,7 +1,14 @@
+import { breadc, isString, optionalTypeGuard, run } from "../deps.ts";
+import { enforceType } from "../type-guard.ts";
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
+import { createAppContainer } from "./commands/create-app-container/mod.ts";
+import { resolveCreateAppContainerOptions } from "./commands/create-app-container/options.ts";
+import { isSize } from "./commands/create-app-container/size.ts";
+import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
+import { deleteAppContainer } from "./commands/delete-app-container.ts";
+import { listAppContainers } from "./commands/list-app-containers.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { Config } from "./config.ts";
-import { breadc, isString, optionalTypeGuard, run } from "../deps.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -11,16 +18,7 @@ import {
   OUTPUT_FORMATS,
   OutputFormat,
 } from "./output-format.ts";
-import { isSize } from "./commands/create-app-container/size.ts";
-import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
-import { enforceType } from "../type-guard.ts";
-import {
-  CreateAppContainerOptions,
-  resolveCreateAppContainerOptions,
-} from "./commands/create-app-container/options.ts";
-import { createAppContainer } from "./commands/create-app-container/mod.ts";
-import { deleteAppContainer } from "./commands/delete-app-container.ts";
-import { listAppContainers } from "./commands/list-app-containers.ts";
+import { castAndEnforceVlan } from "./vlan.ts";
 
 export const COMMAND_NAMES = [
   "create",
@@ -55,6 +53,13 @@ export async function createCli<
         default: defaults?.create?.ip ?? defaults.ip ?? "dhcp",
       },
     )
+    .option("--vlan <vlan>", {
+      description: "VLAN id for the container.",
+      cast: castAndEnforceVlan,
+      default: (
+        (x?: number) => x === undefined ? undefined : `${x}`
+      )(castAndEnforceVlan(defaults?.create?.vlan ?? defaults.vlan)),
+    })
     .option(
       "--ssh-key <ssh-key>",
       {
@@ -103,8 +108,7 @@ export async function createCli<
     )
     .action(
       async (name: string, inputOptions) => {
-        const options: CreateAppContainerOptions<typeof inputOptions.appsDir> =
-          await resolveCreateAppContainerOptions(inputOptions);
+        const options = await resolveCreateAppContainerOptions(inputOptions);
         const { appdataDir } = await createAppContainer(name, options);
         if (options.start) {
           await run(["incus", "start", name]);

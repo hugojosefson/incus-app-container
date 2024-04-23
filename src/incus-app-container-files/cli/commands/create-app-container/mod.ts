@@ -56,8 +56,11 @@ export async function createAppContainer<
           eth0: options.ip === "dhcp"
             ? {
               dhcp4: true,
+              dhcp6: false,
             }
             : {
+              dhcp4: false,
+              dhcp6: false,
               addresses: [options.ip.cidr],
               routes: [{ to: "0.0.0.0/0", via: options.gateway.address }],
               nameservers: { addresses: [options.nameserver.address] },
@@ -80,8 +83,8 @@ export async function createAppContainer<
         devices: {
           eth0: {
             name: "eth0",
-            nictype: "bridged",
-            parent: "br0",
+            nictype: options.vlan ? "macvlan" : "bridged",
+            parent: options.vlan ? `br0.${options.vlan}` : "br0",
             type: "nic",
           },
           root: {
