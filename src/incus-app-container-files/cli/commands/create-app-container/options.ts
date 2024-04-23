@@ -1,4 +1,5 @@
 import { AbsolutePath } from "../../absolute-path.ts";
+import { type Vlan } from "../../vlan.ts";
 import { firstIp } from "./cidr.ts";
 import { Address, Cidr, createAddress } from "../../../deps.ts";
 import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "./idmap.ts";
@@ -14,6 +15,7 @@ export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   start: boolean;
   diskSize: Size;
   appsDir: AppsDir;
+  vlan?: Vlan;
 };
 
 export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
@@ -32,6 +34,7 @@ export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
     appsDir: AppsDir;
     idmapBase: number;
     idmapSize: number;
+    vlan?: Vlan;
   };
 
 export async function resolveCreateAppContainerOptions<
@@ -70,5 +73,6 @@ export async function resolveCreateAppContainerOptions<
     appsDir,
     idmapBase: await getNextIdmapBaseFor(appsDir),
     idmapSize: IDMAP_BASE_SIZE,
+    vlan: input.vlan,
   } as CreateAppContainerOptions<AppsDir>;
 }

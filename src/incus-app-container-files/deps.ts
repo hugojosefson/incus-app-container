@@ -29,6 +29,7 @@ export type {
 // x/fns
 export { s } from "https://deno.land/x/fns@1.1.1/string/s.ts";
 export { isString } from "https://deno.land/x/fns@1.1.1/string/is-string.ts";
+export { isNumber } from "https://deno.land/x/fns@1.1.1/number/is-number.ts";
 export { swallow } from "https://deno.land/x/fns@1.1.1/fn/swallow.ts";
 export {
   global,
