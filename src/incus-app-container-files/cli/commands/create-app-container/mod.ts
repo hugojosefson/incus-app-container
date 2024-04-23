@@ -1,6 +1,7 @@
 import { AbsolutePath } from "../../absolute-path.ts";
 import { CreateAppContainerOptions } from "./options.ts";
 import { run, stringifyYaml } from "../../../deps.ts";
+import { type Vlan } from "../../vlan.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -12,6 +13,27 @@ export type AppContainer<Name extends string> = {
   name: Name;
   appdataDir: AppdataDir<Name>;
 };
+
+async function getNics(): Promise<string[][]> {
+  const netconf = await run(["ip", "netconf"]);
+  const nics = netconf.split("\n")
+    .map((line) => line.split(/\s+/));
+  return nics;
+}
+
+export async function getNic(name: string): Promise<string[] | undefined> {
+  return (await getNics())
+    .filter((nic) => nic[0] === "inet")
+    .find((nic) => nic[1] === name) ?? undefined;
+}
+
+export function getNicParentName(vlan?: Vlan): string {
+  return vlan ? `br0.${vlan}` : "br0";
+}
+
+export function getNicType(vlan?: Vlan): string {
+  return vlan ? "macvlan" : "bridged";
+}
 
 export async function createAppContainer<
   AppsDir extends AbsolutePath,
@@ -25,6 +47,36 @@ export async function createAppContainer<
       pending: "Creating container...",
       done: "Created container.",
     });
+
+    spinner.currentStatus = "Restarting network to reload NIC:s...";
+    await run("systemctl restart networking");
+
+    const nicParentName = getNicParentName(options.vlan);
+    const nicType = getNicType(options.vlan);
+    spinner.currentStatus = `Checking NIC: ${nicParentName}`;
+
+    const nicParent = await getNic(nicParentName);
+
+    if (!nicParent) {
+      if (!options.vlan) {
+        throw new Error(
+          `No bridge NIC named ${nicParentName} found. Please create it.`,
+        );
+      }
+      spinner.currentStatus = `Creating vlan ${options.vlan}...`;
+      await Deno.writeTextFile(
+        `/etc/network/interfaces.d/${nicParentName}`,
+        `
+auto ${nicParentName}
+iface ${nicParentName} inet manual
+  vlan-raw-device ${getNicParentName(undefined)}
+  `,
+      );
+      spinner.currentStatus =
+        `Restarting network to activate vlan ${options.vlan}...`;
+      await run("systemctl restart networking");
+    }
+
     const image = "images:alpine/3.19/cloud";
     spinner.currentStatus = `checking image ${image}`;
     await run(["incus", "image", "info", image]);
@@ -84,15 +136,8 @@ export async function createAppContainer<
           eth0: {
             name: "eth0",
             type: "nic",
-            ...(options.vlan
-              ? {
-                nictype: "macvlan",
-                parent: `br0.${options.vlan}`,
-              }
-              : {
-                nictype: "bridged",
-                parent: "br0",
-              }),
+            nictype: nicType,
+            parent: nicParentName,
           },
           root: {
             path: "/",
