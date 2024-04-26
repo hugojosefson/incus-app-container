@@ -1,6 +1,7 @@
 import { breadc, isString, optionalTypeGuard, run } from "../deps.ts";
 import { enforceType } from "../type-guard.ts";
 import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
+import { DEFAULT_BRIDGE, isBridgeName } from "./bridge-name.ts";
 import { createAppContainer } from "./commands/create-app-container/mod.ts";
 import { resolveCreateAppContainerOptions } from "./commands/create-app-container/options.ts";
 import { isSize } from "./commands/create-app-container/size.ts";
@@ -51,6 +52,15 @@ export async function createCli<
           "Network address for the container in CIDR format, for example 10.20.30.40/24; or 'dhcp'.",
         cast: await enforceType(isString),
         default: defaults?.create?.ip ?? defaults.ip ?? "dhcp",
+      },
+    )
+    .option(
+      "--bridge-name <bridge-name>",
+      {
+        description: "Name of the network bridge device.",
+        cast: await enforceType(isBridgeName),
+        default: defaults?.["create"]?.bridgeName ?? defaults.bridgeName ??
+          DEFAULT_BRIDGE,
       },
     )
     .option("--vlan <vlan>", {
@@ -188,9 +198,9 @@ export async function createCli<
       "--bridge-name <bridge-name>",
       {
         description: "Name of the network bridge device.",
-        cast: await enforceType(isString),
+        cast: await enforceType(isBridgeName),
         default: defaults?.["setup-incus"]?.bridgeName ?? defaults.bridgeName ??
-          "br0",
+          DEFAULT_BRIDGE,
       },
     )
     .option(

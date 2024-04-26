@@ -1,4 +1,5 @@
 import { AbsolutePath } from "./absolute-path.ts";
+import { BridgeName } from "./bridge-name.ts";
 import { CreateAppContainerInputOptions } from "./commands/create-app-container/options.ts";
 import { SetupIncusOptions } from "./commands/setup-incus/mod.ts";
 import { CommandName } from "./create-cli.ts";
@@ -28,7 +29,10 @@ export type InputOptionsPerCommand<AppsDir extends AbsolutePath> = {
 
 export type CreateInputOptions<AppsDir extends AbsolutePath> =
   & CreateAppContainerInputOptions<AppsDir>
-  & { sshKey: string };
+  & {
+    sshKey: string;
+    bridgeName: BridgeName;
+  };
 
 export type DeleteInputOptions = {
   force: boolean;

@@ -2,6 +2,7 @@ import { AbsolutePath } from "../../absolute-path.ts";
 import { CreateAppContainerOptions } from "./options.ts";
 import { run, stringifyYaml } from "../../../deps.ts";
 import { type Vlan } from "../../vlan.ts";
+import { type BridgeName } from "../../bridge-name.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
@@ -27,8 +28,8 @@ export async function getNic(name: string): Promise<string[] | undefined> {
     .find((nic) => nic[1] === name) ?? undefined;
 }
 
-export function getNicParentName(vlan?: Vlan): string {
-  return vlan ? `br0.${vlan}` : "br0";
+export function getNicParentName(bridgeName: BridgeName, vlan?: Vlan): string {
+  return vlan ? `${bridgeName}.${vlan}` : bridgeName;
 }
 
 export function getNicType(vlan?: Vlan): string {
@@ -51,7 +52,7 @@ export async function createAppContainer<
     spinner.currentStatus = "Restarting network to reload NIC:s...";
     await run("systemctl restart networking");
 
-    const nicParentName = getNicParentName(options.vlan);
+    const nicParentName = getNicParentName(options.bridgeName, options.vlan);
     const nicType = getNicType(options.vlan);
     spinner.currentStatus = `Checking NIC: ${nicParentName}`;
 
@@ -69,7 +70,7 @@ export async function createAppContainer<
         `
 auto ${nicParentName}
 iface ${nicParentName} inet manual
-  vlan-raw-device ${getNicParentName(undefined)}
+  vlan-raw-device ${getNicParentName(options.bridgeName, undefined)}
   `,
       );
       spinner.currentStatus =
