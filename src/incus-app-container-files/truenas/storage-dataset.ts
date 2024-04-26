@@ -1,3 +1,4 @@
+import { SetupJailmakerOptions } from "../cli/commands/setup-jailmaker/setup-jailmaker-options.ts";
 import { truenasCli } from "./cli.ts";
 
 export type StorageDataset = {
@@ -18,14 +19,9 @@ export async function getDatasets(): Promise<StorageDataset[]> {
 }
 
 export async function createDataset(
-  options: {
-    dryRun: boolean;
-    pool?: string;
-    dataset?: string;
-    directory?: string;
-    readonly?: boolean;
-    exec?: boolean;
-  },
+  options:
+    & Pick<SetupJailmakerOptions, "dryRun" | "pool" | "dataset" | "directory">
+    & Partial<{ readonly: boolean; exec: boolean }>,
 ): Promise<StorageDataset> {
   if (!options.pool) {
     throw new Error("Cannot create dataset without specifying pool.");
