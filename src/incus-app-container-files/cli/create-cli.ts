@@ -19,6 +19,7 @@ import {
   OUTPUT_FORMATS,
   OutputFormat,
 } from "./output-format.ts";
+import { isSupportedImage, SUPPORTED_IMAGES } from "./supported-image.ts";
 import { castAndEnforceVlan } from "./vlan.ts";
 
 export const COMMAND_NAMES = [
@@ -54,6 +55,11 @@ export async function createCli<
         default: defaults?.create?.ip ?? defaults.ip ?? "dhcp",
       },
     )
+    .option("--image <image>", {
+      description: "Image to use for the container.",
+      cast: await enforceType(isSupportedImage, SUPPORTED_IMAGES, "image"),
+      default: defaults?.create?.image ?? defaults.image ?? SUPPORTED_IMAGES[0],
+    })
     .option(
       "--bridge-name <bridge-name>",
       {

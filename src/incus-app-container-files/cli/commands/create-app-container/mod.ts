@@ -78,9 +78,8 @@ iface ${nicParentName} inet manual
       await run("systemctl restart networking");
     }
 
-    const image = "images:alpine/3.19/cloud";
-    spinner.currentStatus = `checking image ${image}`;
-    await run(["incus", "image", "info", image]);
+    spinner.currentStatus = `checking image ${options.imageUri}`;
+    await run(["incus", "image", "info", options.imageUri as string]);
 
     spinner.currentStatus = "building cloud-init vendor config";
     const vendorConfig = {
@@ -128,7 +127,7 @@ iface ${nicParentName} inet manual
       "create",
       "--no-profiles",
       "--storage=default",
-      image,
+      options.imageUri as string,
       name,
     ], {
       stdin: stringifyYaml({
