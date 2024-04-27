@@ -6,7 +6,6 @@ import { createAppContainer } from "./commands/create-app-container/mod.ts";
 import { resolveCreateAppContainerOptions } from "./commands/create-app-container/options.ts";
 import { isSize } from "./commands/create-app-container/size.ts";
 import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
-import { deleteAppContainer } from "./commands/delete-app-container.ts";
 import { listAppContainers } from "./commands/list-app-containers.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { Config } from "./config.ts";
@@ -24,7 +23,6 @@ import { castAndEnforceVlan } from "./vlan.ts";
 
 export const COMMAND_NAMES = [
   "create",
-  "delete",
   "list",
   "setup-incus",
 ] as const;
@@ -140,33 +138,6 @@ export async function createCli<
         console.log(appdataDir);
       },
     );
-
-  cli
-    .command(
-      "delete <container_name>",
-      "Delete an Incus app container instance.",
-    )
-    .alias("rm")
-    .option(
-      "--force",
-      {
-        description: "Force the removal of running instance, if any.",
-        default: defaults?.delete?.force ?? defaults.force ?? false,
-        cast: Boolean,
-      },
-    )
-    .option(
-      "--delete-appdata",
-      {
-        description: "Delete the appdata directory as well.",
-        default: defaults?.delete?.deleteAppdata ?? defaults.deleteAppdata ??
-          false,
-        cast: Boolean,
-      },
-    )
-    .action((containerName: string, { deleteAppdata }) => {
-      deleteAppContainer(containerName, deleteAppdata);
-    });
 
   cli
     .command("list", "List all Incus app container instances.")

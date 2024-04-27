@@ -11,14 +11,12 @@ const CONFIG_FILE = `/etc/default/incus-app-container`;
 
 export type Config<AppsDir extends AbsolutePath = AbsolutePath> =
   & Partial<InputOptions<"create", AppsDir>>
-  & Partial<InputOptions<"delete", AppsDir>>
   & Partial<InputOptions<"list", AppsDir>>
   & Partial<InputOptions<"setup-incus", AppsDir>>
   & Partial<InputOptionsPerCommand<AppsDir>>;
 
 export type InputOptions<C extends CommandName, AppsDir extends AbsolutePath> =
   C extends "create" ? CreateInputOptions<AppsDir>
-    : C extends "delete" ? DeleteInputOptions
     : C extends "list" ? ListInputOptions
     : C extends "setup-incus" ? SetupIncusOptions
     : never;
@@ -33,11 +31,6 @@ export type CreateInputOptions<AppsDir extends AbsolutePath> =
     sshKey: string;
     bridgeName: BridgeName;
   };
-
-export type DeleteInputOptions = {
-  force: boolean;
-  deleteAppdata: boolean;
-};
 
 export type ListInputOptions = {
   format: OutputFormat;
