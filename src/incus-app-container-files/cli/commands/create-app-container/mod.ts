@@ -1,13 +1,14 @@
-import { AbsolutePath } from "../../absolute-path.ts";
-import { CreateAppContainerOptions } from "./options.ts";
 import { run, stringifyYaml } from "../../../deps.ts";
-import { type Vlan } from "../../vlan.ts";
+import { StatusSpinnerResource } from "../../../status-spinner-resource.ts";
+import { AbsolutePath } from "../../absolute-path.ts";
 import { type BridgeName } from "../../bridge-name.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
 } from "../../incus-container-status.ts";
-import { StatusSpinnerResource } from "../../../status-spinner-resource.ts";
+import { toTemplateName } from "../../supported-image.ts";
+import { type Vlan } from "../../vlan.ts";
+import { CreateAppContainerOptions } from "./options.ts";
 
 export type AppdataDir<Name extends string> = `${string | ""}/apps/${Name}`;
 export type AppContainer<Name extends string> = {
@@ -209,17 +210,18 @@ iface ${nicParentName} inet manual
       pending: "Running install script...",
       done: "Ran install script.",
     });
-    spinner.currentStatus = "Fetching install script for alpine-319-cloud";
+    spinner.currentStatus = `Fetching install script for ${options.imageUri}`;
     await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
     await run(["incus", "start", name]);
     await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
 
-    spinner.currentStatus = "Pushing install script for alpine-319-cloud...";
+    spinner.currentStatus = `Pushing install script for ${options.imageUri}...`;
     await run([
       "incus",
       "file",
       "push",
-      import.meta.dirname + "/../../../template/alpine-319-cloud-install",
+      import.meta.dirname + "/../../../template/" +
+      toTemplateName(options.imageUri),
       `${name}/usr/local/bin/`,
       "--mode",
       "0755",
@@ -242,20 +244,22 @@ iface ${nicParentName} inet manual
       "--",
       "sh",
       "-c",
-      "until apk update --no-cache; do sleep 0.5; done",
+      "until apk update --no-cache || apt-get update; do sleep 0.5; done",
     ]);
 
-    spinner.currentStatus = "Running install script for alpine-319-cloud...";
+    spinner.currentStatus = `Running install script ${
+      toTemplateName(options.imageUri)
+    }...`;
     await run([
       "incus",
       "exec",
       name,
       "--",
-      "alpine-319-cloud-install",
+      toTemplateName(options.imageUri),
     ]);
 
     spinner.currentStatus =
-      "Finished running install script for alpine-319-cloud. Stopping container...";
+      `Finished running install script for ${options.imageUri}. Stopping container...`;
     await run(["incus", "stop", name]);
     await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
   }

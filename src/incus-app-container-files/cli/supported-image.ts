@@ -1,5 +1,6 @@
 export const SUPPORTED_IMAGES = [
   "alpine/3.19/cloud",
+  "ubuntu/24.04/cloud",
 ] as const;
 
 export type SupportedImage = typeof SUPPORTED_IMAGES[number];
@@ -19,4 +20,15 @@ export function toSupportedImageUri<I extends SupportedImage>(
   image: I,
 ): SupportedImageUri<I> {
   return `images:${image}`;
+}
+
+export function toTemplateName(
+  imageUri: SupportedImageUri<SupportedImage>,
+): string {
+  return imageUri.toLowerCase().replace(/^images:/, "").replaceAll(
+    "/",
+    "-",
+  )
+    .replaceAll(".", "") +
+    "-install";
 }
