@@ -1,7 +1,7 @@
 export const SUPPORTED_IMAGES = [
-  "alpine/3.19/cloud",
-  "ubuntu/24.04/cloud",
   "debian/12/cloud",
+  "ubuntu/24.04/cloud",
+  "alpine/3.19/cloud",
 ] as const;
 
 export type SupportedImage = typeof SUPPORTED_IMAGES[number];
