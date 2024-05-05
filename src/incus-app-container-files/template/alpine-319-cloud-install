@@ -54,45 +54,46 @@ hr >> /etc/issue
 EOF
 
 apk upgrade --no-cache
-apk add --no-cache curl docker docker-cli-compose openssh-server
+apk add --no-cache curl podman podman-bash-completion podman-docker podman-tui podman-openrc openssh-server pipx
+pipx install podman-compose
 
 enable_service local
 enable_service sshd
-enable_service docker
+enable_service podman
 
 appdata_dir="/appdata"
-docker_compose_file="${appdata_dir}/docker-compose.yml"
-create_service docker-compose <<EOF
+podman_compose_file="${appdata_dir}/podman-compose.yml"
+create_service podman-compose <<EOF
 #!/sbin/openrc-run
 
 ################################################################################
-# Manages a docker-compose service.
+# Manages a podman-compose service.
 ################################################################################
 
 appdata_dir="${appdata_dir}"
-docker_compose_file="${docker_compose_file}"
+podman_compose_file="${podman_compose_file}"
 
 name=\$RC_SVCNAME
 description="Docker Compose Application Service"
-description_reload="Reload changes in \${docker_compose_file}"
+description_reload="Reload changes in \${podman_compose_file}"
 
 depend() {
-	after docker
-	need docker
+	after podman
+	need podman
 }
 
 extra_started_commands="reload"
 
-_docker_compose() {
-  docker-compose --file "\${docker_compose_file}" "\$@"
+_podman_compose() {
+  podman-compose --file "\${podman_compose_file}" "\$@"
 }
 
-_docker_compose_up() {
-  _docker_compose up --detach --remove-orphans --pull=always --wait
+_podman_compose_up() {
+  _podman_compose up --detach --remove-orphans --pull=always --wait
 }
 
 checkconfig() {
-  _docker_compose config --quiet
+  _podman_compose config --quiet
 }
 
 start_pre() {
@@ -107,9 +108,9 @@ start_pre() {
     checkconfig || return \$?
   fi
 
-  if ! docker info 2>/dev/null >/dev/null; then
+  if ! podman info 2>/dev/null >/dev/null; then
     ebegin "Waiting for Docker daemon to be ready..."
-    timeout 15 sh -c 'until docker info 2>/dev/null >/dev/null; do sleep 1; done;'
+    timeout 15 sh -c 'until podman info 2>/dev/null >/dev/null; do sleep 1; done;'
     if [ \$? -eq 0 ]; then
       eend 0 "Docker daemon is ready"
     else
@@ -128,53 +129,53 @@ stop_pre() {
 
 start() {
 	ebegin "Starting \$RC_SVCNAME"
-  _docker_compose_up
+  _podman_compose_up
 	eend \$?
 }
 
 reload() {
-  ebegin "Reloading \$RC_SVCNAME's \${docker_compose_file}"
-  _docker_compose_up
+  ebegin "Reloading \$RC_SVCNAME's \${podman_compose_file}"
+  _podman_compose_up
   eend \$?
 }
 
 stop() {
 	ebegin "Stopping \$RC_SVCNAME"
-	if ! [ -r "\${docker_compose_file}" ]; then
-    service docker stop &
+	if ! [ -r "\${podman_compose_file}" ]; then
+    service podman stop &
     eend 0
     return 0
   fi
-	_docker_compose down
+	_podman_compose down
 	eend \$?
 }
 EOF
 
-create_service docker-compose-watchdog <<EOF
+create_service podman-compose-watchdog <<EOF
 #!/sbin/openrc-run
 
 ################################################################################
-# Keeps an instance of docker-compose-watchdog running.
+# Keeps an instance of podman-compose-watchdog running.
 ################################################################################
 
 supervisor="supervise-daemon"
-command="/usr/bin/docker-compose-watchdog"
+command="/usr/bin/podman-compose-watchdog"
 stopsig="HUP"
 retry="INT/5/TERM/5/KILL/5"
 EOF
 
-create_executable "/usr/bin/docker-compose-watchdog" <<EOF
+create_executable "/usr/bin/podman-compose-watchdog" <<EOF
 #!/bin/sh
 set -e
 
 ################################################################################
-# Watches the ${docker_compose_file} file for changes and reloads the
-# docker-compose service when it does.
+# Watches the ${podman_compose_file} file for changes and reloads the
+# podman-compose service when it does.
 #
-# This script is intended to be run by the docker-compose-watchdog service.
+# This script is intended to be run by the podman-compose-watchdog service.
 ################################################################################
 
-docker_compose_file="${docker_compose_file}"
+podman_compose_file="${podman_compose_file}"
 inotifyd_max_wait="60"
 previous_hash=""
 current_hash=""
@@ -193,10 +194,10 @@ handle_signal() {
 trap handle_signal HUP INT TERM QUIT ABRT KILL
 
 get_hash() {
-  if ! [ -r "\${docker_compose_file}" ]; then
+  if ! [ -r "\${podman_compose_file}" ]; then
     echo "N/A"
   else
-    sha256sum "\${docker_compose_file}" | cut -d' ' -f1
+    sha256sum "\${podman_compose_file}" | cut -d' ' -f1
   fi
 }
 
@@ -218,15 +219,15 @@ has_the_file_changed() {
 main() {
   while true; do
     if has_the_file_changed; then
-      docker-compose-reload
+      podman-compose-reload
       sleep 1
       continue
     fi
 
-    if [ -r "\${docker_compose_file}" ]; then
-      timeout "\${inotifyd_max_wait}" inotifyd : "\${docker_compose_file}":cew0uoDMx &
+    if [ -r "\${podman_compose_file}" ]; then
+      timeout "\${inotifyd_max_wait}" inotifyd : "\${podman_compose_file}":cew0uoDMx &
       inotifyd_pid="\$!"
-      echo "Waiting up to \${inotifyd_max_wait} seconds for changes to \${docker_compose_file} in inotifyd pid \${inotifyd_pid}" >&2
+      echo "Waiting up to \${inotifyd_max_wait} seconds for changes to \${podman_compose_file} in inotifyd pid \${inotifyd_pid}" >&2
       wait "\${inotifyd_pid}"
       echo "inotifyd terminated" >&2
       if [ -n "\${shutting_down}" ]; then
@@ -245,73 +246,73 @@ main() {
 main "\$@"
 EOF
 
-create_executable "/usr/bin/docker-compose-reload" <<EOF
+create_executable "/usr/bin/podman-compose-reload" <<EOF
 #!/bin/sh
 set -e
 
 ################################################################################
-# Makes sure that the docker-compose service is running and up-to-date with any
-# ${docker_compose_file} file.
+# Makes sure that the podman-compose service is running and up-to-date with any
+# ${podman_compose_file} file.
 #
 # Takes down the service if the file is not readable. If the file is not ok, it
 # does nothing.
 #
-# This script is intended to be run by the docker-compose-watchdog service.
+# This script is intended to be run by the podman-compose-watchdog service.
 ################################################################################
 
-docker_compose_file="${docker_compose_file}"
+podman_compose_file="${podman_compose_file}"
 
-is_docker_compose_running() {
-  service docker-compose status --quiet
+is_podman_compose_running() {
+  service podman-compose status --quiet
 }
 
-is_docker_compose_file_readable() {
-  test -r "\${docker_compose_file}"
+is_podman_compose_file_readable() {
+  test -r "\${podman_compose_file}"
 }
 
-is_docker_compose_file_ok() {
-  docker-compose -f "\${docker_compose_file}" config --quiet
+is_podman_compose_file_ok() {
+  podman-compose -f "\${podman_compose_file}" config --quiet
 }
 
 main() {
-  if ! is_docker_compose_file_readable; then
-    service docker-compose stop
+  if ! is_podman_compose_file_readable; then
+    service podman-compose stop
     return 0
   fi
 
-  if ! is_docker_compose_file_ok; then
+  if ! is_podman_compose_file_ok; then
     return 0
   fi
 
-  if ! is_docker_compose_running; then
-    service docker-compose start
+  if ! is_podman_compose_running; then
+    service podman-compose start
     return 0
   fi
 
-  service docker-compose reload
+  service podman-compose reload
 }
 
 main "\$@"
 EOF
 
-create_file_if_not_exists "${docker_compose_file}" <<EOF
+create_file_if_not_exists "${podman_compose_file}" <<EOF
 services:
   # https://containrrr.dev/watchtower/arguments/
   watchtower:
-    image: docker.io/containrrr/watchtower
+    image: podman.io/containrrr/watchtower
     environment:
       - WATCHTOWER_CLEANUP=true
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/podman.sock:/var/run/podman.sock
 
   # your app here
   app:
-    image: docker.io/traefik/whoami
+    image: podman.io/traefik/whoami
     environment:
       - PORT=80
     ports: [ "80:80" ]
 #   volumes:
-#     - ${appdata_dir}/data:/data:ro    # left side is inside lxc, right is inside docker
+#     - ${appdata_dir}/data:/data:ro    # left side is inside lxc, right is inside podman
 EOF
 
 extra_commands
