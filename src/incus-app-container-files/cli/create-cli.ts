@@ -112,7 +112,7 @@ export async function createCli<
       {
         default: defaults?.create?.appsDir ?? defaults.appsDir ?? "/mnt/apps",
         description:
-          "Base directory for where all app containers' appdata are (to be) stored.",
+          "Base directory for where all app containers' metadata and appdata are (to be) stored.",
         cast: await enforceType(
           isAbsolutePath,
           "an absolute path, for example /mnt/apps",
@@ -123,7 +123,7 @@ export async function createCli<
     .action(
       async (name: string, inputOptions) => {
         const options = await resolveCreateAppContainerOptions(inputOptions);
-        const { appdataDir } = await createAppContainer(name, options);
+        const { appDir } = await createAppContainer(name, options);
         if (options.start) {
           await run(["incus", "start", name]);
           await untilStatusCode(
@@ -135,7 +135,7 @@ export async function createCli<
             },
           );
         }
-        console.log(appdataDir);
+        console.log(appDir);
       },
     );
 

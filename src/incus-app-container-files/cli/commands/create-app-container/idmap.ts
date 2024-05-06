@@ -9,7 +9,7 @@ export const IDMAP_BASE_SIZE = 100_000;
  *     - check owner/group of existing app dirs (immediate subdirs of apps)
  *     - minimum: {@link IDMAP_BASE_MIN}
  *     - based on the highest uid or gid that owns an immediate subdirectory of apps, choose the next even million that is at least {@link IDMAP_BASE_SIZE} larger than the existing.
- * @param appsDir the directory where appdata directories are stored
+ * @param appsDir the directory where app directories are stored
  */
 export async function getNextIdmapBaseFor(
   appsDir: AbsolutePath,

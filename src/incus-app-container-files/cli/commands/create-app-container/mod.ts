@@ -10,10 +10,13 @@ import { toTemplateName } from "../../supported-image.ts";
 import { type Vlan } from "../../vlan.ts";
 import { CreateAppContainerOptions } from "./options.ts";
 
-export type AppdataDir<Name extends string> = `${string | ""}/apps/${Name}`;
+export type AppDir<Name extends string> = `${string | ""}/apps/${Name}`;
+export type AppDataDir<Name extends string> = `${
+  | string
+  | ""}/apps/${Name}/appdata`;
 export type AppContainer<Name extends string> = {
   name: Name;
-  appdataDir: AppdataDir<Name>;
+  appDir: AppDir<Name>;
 };
 
 async function getNics(): Promise<string[][]> {
@@ -44,6 +47,8 @@ export async function createAppContainer<
   name: Name,
   options: CreateAppContainerOptions<AppsDir>,
 ): Promise<AppContainer<Name>> {
+  const appDir = `${options.appsDir}/${name}` as AppDir<Name>;
+  const appDataDir = `${appDir}/appdata` as AppDataDir<Name>;
   {
     using spinner = new StatusSpinnerResource(name, {
       pending: "Creating container...",
@@ -169,16 +174,15 @@ iface ${nicParentName} inet manual
       `size=${options.diskSize}`,
     ]);
 
-    const appdataDir = `${options.appsDir}/${name}` as AppdataDir<Name>;
-    await Deno.mkdir(appdataDir, { recursive: true });
+    await Deno.mkdir(appDir, { recursive: true });
     await run([
       "chown",
       "-R",
       `${options.idmapBase}:${options.idmapBase}`,
-      appdataDir,
+      appDir,
     ]); // because Deno.chown is not recursive
     spinner.currentStatus =
-      `creating bind-mount from host:${appdataDir} to ${name}:/appdata`;
+      `creating bind-mount from host:${appDataDir} to ${name}:/appdata`;
     await run([
       "incus",
       "config",
@@ -187,7 +191,7 @@ iface ${nicParentName} inet manual
       name,
       "appdata-bind-mount",
       "disk",
-      `source=${appdataDir}`,
+      `source=${appDataDir}`,
       `path=/appdata`,
     ]);
   }
@@ -266,6 +270,6 @@ iface ${nicParentName} inet manual
 
   return {
     name,
-    appdataDir: `${options.appsDir}/${name}` as AppdataDir<Name>,
+    appDir,
   };
 }

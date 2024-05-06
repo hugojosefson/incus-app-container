@@ -14,16 +14,18 @@ that did a similar thing for Proxmox VE.
 - [x] You have an `apps` directory on the TrueNAS SCALE server.
 - [x] Each container/app:
   - [x] Has a subdirectory in `apps`, with the app's name.
-    - [x] It contains the app's `docker-compose.yml` file.
-    - [x] It is bind mounted inside the container as `/appdata`.
+    - [x] It has a subdirectory `appdata` inside it, for the app's data.
+      - [x] It contains the app's `docker-compose.yml` file.
+      - [x] It is bind mounted inside the container as `/appdata`.
   - [x] Has `docker-compose` installed, and runs the app via its
-        `docker-compose.yml`.
+        `/appdata/docker-compose.yml`.
   - [x] Watches the `docker-compose.yml` file for changes, and restarts the app
         when it changes.
   - [x] Is exposed on the network with a static IP, or DHCP.
 - [x] CLI script(s) to easily create a new container/app.
   - [x] Sets up a new subdirectory in `apps`.
-  - [x] Puts an example `docker-compose.yml` into the new subdirectory.
+  - [x] Puts an example `docker-compose.yml` into the new subdirectory's
+        `appdata` directory.
   - [x] Creates a new container with:
     - [x] a static IP, or DHCP;
     - [x] the new subdirectory as the bind mount;
@@ -38,7 +40,7 @@ that did a similar thing for Proxmox VE.
 
 - [ ] Put each app's configuration (ip(s), extra bind-mounts, image, etc) in a
       `<appName>/incus-app-container.yml` file in the app's subdirectory.
-- [ ] The app container has a subdirectory `<appName>/appdata/` mounted as
+- [x] The app container has a subdirectory `<appName>/appdata/` mounted as
       `/appdata` inside the container, so it can't reach its own configuration.
 - [ ] No scripts to run, just an always running container that watches the
       `apps/` directory for changes, and:
@@ -50,9 +52,10 @@ that did a similar thing for Proxmox VE.
   - [ ] stops (doesn't start) containers if they have file `<appName>/disabled`.
 - [ ] The service keeps track of its own containers by setting a label on them,
       and only manages containers with that label.
-- [x] Each `docker-compose.yml` is by default prepared with a service that keeps
-      its docker images up to date. It's a third-party tool, called
-      [Watchtower](https://containrrr.dev/watchtower/).
+- [x] ~~Each `docker-compose.yml` is by default prepared with a service that
+      keeps its docker images up to date. It's a third-party tool, called
+      [Watchtower](https://containrrr.dev/watchtower/).~~
+- [x] Updates the images automatically, using Podman's built-in image updater.
 - [x] Inside each incus app container, there's a service that watches the
       `docker-compose.yml` file for changes, and reloads the app when it
       changes.
@@ -93,7 +96,6 @@ watch -n0.2 'ps -ef | grep -v "ps -ef"'
 ```sh
 # run the watchdog manually
 service docker-compose-watchdog stop
-killall inotifyd
 docker-compose-watchdog
 ```
 
