@@ -22,6 +22,8 @@
       <envs />
     </TaskOptions>
     <enabled-global>
+      <option value="deno fmt .ts" />
+      <option value="deno fmt .md" />
       <option value="deno fmt" />
     </enabled-global>
   </component>

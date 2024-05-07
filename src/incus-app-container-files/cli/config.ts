@@ -13,12 +13,14 @@ export type Config<AppsDir extends AbsolutePath = AbsolutePath> =
   & Partial<InputOptions<"create", AppsDir>>
   & Partial<InputOptions<"list", AppsDir>>
   & Partial<InputOptions<"setup-incus", AppsDir>>
+  & Partial<InputOptions<"setpoint", AppsDir>>
   & Partial<InputOptionsPerCommand<AppsDir>>;
 
 export type InputOptions<C extends CommandName, AppsDir extends AbsolutePath> =
   C extends "create" ? CreateInputOptions<AppsDir>
     : C extends "list" ? ListInputOptions
     : C extends "setup-incus" ? SetupIncusOptions
+    : C extends "setpoint" ? SetpointInputOptions<AppsDir>
     : never;
 
 export type InputOptionsPerCommand<AppsDir extends AbsolutePath> = {
@@ -34,6 +36,10 @@ export type CreateInputOptions<AppsDir extends AbsolutePath> =
 
 export type ListInputOptions = {
   format: OutputFormat;
+};
+
+export type SetpointInputOptions<AppsDir extends AbsolutePath> = {
+  appsDir: AppsDir;
 };
 
 export async function getConfig<

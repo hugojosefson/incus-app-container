@@ -8,6 +8,7 @@ import { isSize } from "./commands/create-app-container/size.ts";
 import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
 import { listAppContainers } from "./commands/list-app-containers.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
+import { setpoint } from "./commands/setpoint/mod.ts";
 import { Config } from "./config.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
@@ -25,6 +26,7 @@ export const COMMAND_NAMES = [
   "create",
   "list",
   "setup-incus",
+  "setpoint",
 ] as const;
 export type CommandName = typeof COMMAND_NAMES[number];
 
@@ -41,6 +43,12 @@ export async function createCli<
     description: "Opinionated script for creating Incus containers for apps.",
     version: "0.0.0",
   });
+
+  const appsDirOptionCast = await enforceType(
+    isAbsolutePath,
+    "an absolute path, for example /mnt/apps",
+    "apps-dir",
+  );
 
   cli
     .command("create <container_name>", "Create a new Incus app container.")
@@ -110,14 +118,11 @@ export async function createCli<
     .option(
       "--apps-dir <apps-dir>",
       {
-        default: defaults?.create?.appsDir ?? defaults.appsDir ?? "/mnt/apps",
+        default: defaults?.create?.appsDir ?? defaults.appsDir ??
+          "/mnt/apps",
         description:
           "Base directory for where all app containers' metadata and appdata are (to be) stored.",
-        cast: await enforceType(
-          isAbsolutePath,
-          "an absolute path, for example /mnt/apps",
-          "apps-dir",
-        ),
+        cast: appsDirOptionCast,
       },
     )
     .action(
@@ -190,6 +195,23 @@ export async function createCli<
       },
     )
     .action(setupIncus);
+
+  cli
+    .command(
+      "setpoint",
+      "Print the current setpoint; the containers we want, according to configuration files.",
+    )
+    .option(
+      "--apps-dir <apps-dir>",
+      {
+        default: defaults?.setpoint?.appsDir ?? defaults.appsDir ??
+          "/mnt/apps",
+        description:
+          "Base directory for where all app containers' metadata and appdata are (to be) stored.",
+        cast: appsDirOptionCast,
+      },
+    )
+    .action(setpoint);
 
   return cli;
 }

@@ -1,6 +1,7 @@
 // std
 export { basename } from "https://deno.land/std@0.222.1/path/basename.ts";
 export { dirname } from "https://deno.land/std@0.222.1/path/dirname.ts";
+export { exists } from "https://deno.land/std@0.224.0/fs/exists.ts";
 export { parse as parseToml } from "https://deno.land/std@0.222.1/toml/parse.ts";
 export {
   parse as parseCsv,
@@ -13,6 +14,11 @@ export { mapValues } from "https://deno.land/std@0.222.1/collections/map_values.
 // x
 export { fetch as fetchFile } from "https://deno.land/x/file_fetch@0.2.0/mod.ts";
 export { default as camelCase } from "https://deno.land/x/case@2.2.0/camelCase.ts";
+export {
+  DEFAULT_FILE_LOADERS as DEFAULT_CONFIG_FILE_LOADERS,
+  DEFAULT_OPTIONS as DEFAULT_LOAD_CONFIG_FILES_OPTIONS,
+  loadConfig,
+} from "https://deno.land/x/load_config_files@0.3.0/mod.ts";
 
 // x/cliffy
 export { Select } from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/select.ts";
@@ -37,15 +43,25 @@ export {
   startWith,
   unicode,
 } from "https://deno.land/x/fns@1.1.1/string/regex.ts";
+export { prop } from "https://deno.land/x/fns@1.1.1/object/prop.ts";
 
 // x/fns@unstable
 export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";
 export { type Transformer } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/fn/transformer.ts";
 export { createDeepMapKeys } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/object/deep-map-keys.ts";
+export { fromAsyncIterator } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/array/from-async-iterator.ts";
 
 // npm
 export { default as split } from "npm:argv-split@2.0.1";
-export { breadc, ParseError } from "npm:breadc@0.9.7";
+export {
+  breadc,
+  type Command as BreadcCommand,
+  ParseError,
+} from "npm:breadc@0.9.7";
+
+// npm sindresorhus/p-*
+export { default as pMap } from "npm:p-map@7.0.2";
+export { default as pFilter } from "npm:p-filter@4.1.0";
 
 // npm ip-cidr
 export { type Address } from "npm:ip-cidr@4.0.0";
