@@ -49,9 +49,9 @@ that did a similar thing for Proxmox VE.
   - [ ] updates existing incus app containers when their
         `incus-app-container.yml` changes,
   - [ ] deletes incus app containers for subdirectories that are deleted,
-  - [ ] stops (doesn't start) containers if they have file `<appName>/disabled`.
-- [ ] The service keeps track of its own containers by setting a label on them,
-      and only manages containers with that label.
+- [ ] The service keeps track of its own containers by setting an empty
+      [profile](https://linuxcontainers.org/incus/docs/main/profiles/) on them,
+      and only manages containers with that profile.
 - [x] ~~Each `docker-compose.yml` is by default prepared with a service that
       keeps its docker images up to date. It's a third-party tool, called
       [Watchtower](https://containrrr.dev/watchtower/).~~
