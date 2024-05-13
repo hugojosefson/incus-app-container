@@ -1,15 +1,15 @@
 // std
-export { basename } from "https://deno.land/std@0.222.1/path/basename.ts";
-export { dirname } from "https://deno.land/std@0.222.1/path/dirname.ts";
-export { exists } from "https://deno.land/std@0.224.0/fs/exists.ts";
-export { parse as parseToml } from "https://deno.land/std@0.222.1/toml/parse.ts";
+export { basename } from "jsr:@std/path@^0.224.0/basename";
+export { dirname } from "jsr:@std/path@^0.224.0/dirname";
+export { exists } from "jsr:@std/fs@^0.224.0/exists";
+export { parse as parseToml } from "jsr:@std/toml@^0.224.0/parse";
 export {
   parse as parseCsv,
   type ParseOptions,
-} from "https://deno.land/std@0.222.1/csv/parse.ts";
-export { stringify as stringifyYaml } from "https://deno.land/std@0.222.1/yaml/stringify.ts";
-export { Spinner } from "https://deno.land/std@0.222.1/cli/spinner.ts";
-export { mapValues } from "https://deno.land/std@0.222.1/collections/map_values.ts";
+} from "jsr:@std/csv@^0.224.0/parse";
+export { stringify as stringifyYaml } from "jsr:@std/yaml@^0.224.0/stringify";
+export { Spinner } from "jsr:@std/cli@^0.224.0/spinner";
+export { mapValues } from "jsr:@std/collections@^0.224.0/map-values";
 
 // x
 export { fetch as fetchFile } from "https://deno.land/x/file_fetch@0.2.0/mod.ts";

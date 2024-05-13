@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
+import { assertEquals } from "../../../../../test/deps.ts";
 import { calculateAppDirSegments } from "./calculate-app-dir-segments.ts";
 import { s } from "../../../deps.ts";
 import { AbsolutePath } from "../../absolute-path.ts";
