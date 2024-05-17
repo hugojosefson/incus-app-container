@@ -42,16 +42,28 @@ that did a similar thing for Proxmox VE.
       `<appName>/incus-app-container.yml` file in the app's subdirectory.
 - [x] The app container has a subdirectory `<appName>/appdata/` mounted as
       `/appdata` inside the container, so it can't reach its own configuration.
-- [ ] No scripts to run, just an always running container that watches the
-      `apps/` directory for changes, and:
+- [ ] No scripts to run, just an always running container (or service?) that
+      watches the `apps/` directory for changes, and:
   - [ ] creates+starts new incus app containers for each new subdirectory it
         finds with an `incus-app-container.yml` file,
   - [ ] updates existing incus app containers when their
         `incus-app-container.yml` changes,
   - [ ] deletes incus app containers for subdirectories that are deleted,
-- [ ] The service keeps track of its own containers by setting an empty
+  - [ ] watches the directories and `incus-app-container.yml` files for changes
+  - [ ] when any `incus-app-container.yml` changes, or any directory changes:
+    - [ ] writes `incus-app-container.tf` to the apps' root directory
+  - [ ] watches the `incus-app-container.tf` file for changes
+  - [ ] watches incus for changes with
+        `incus monitor --type=lifecycle --type=operation --format=json`
+  - [ ] when `incus-app-container.tf` changes, or `incus monitor` reports
+        anything:
+    - [ ] `tofu apply -auto-approve -compact-warnings -concise`
+- [ ] The service keeps track of its own containers via OpenTofu's state, stored
+      in `apps/incus-app-container.tfstate`.
+- [ ] The service brands its containers with an empty
       [profile](https://linuxcontainers.org/incus/docs/main/profiles/) on them,
-      and only manages containers with that profile.
+      so the user can see clearly which containers are owned by
+      `incus-app-container`.
 - [x] ~~Each `docker-compose.yml` is by default prepared with a service that
       keeps its docker images up to date. It's a third-party tool, called
       [Watchtower](https://containrrr.dev/watchtower/).~~
