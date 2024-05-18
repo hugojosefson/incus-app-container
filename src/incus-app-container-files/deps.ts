@@ -33,17 +33,17 @@ export type {
 } from "https://deno.land/x/run_simple@2.3.0/mod.ts";
 
 // x/fns
-export { s } from "https://deno.land/x/fns@1.1.1/string/s.ts";
-export { isString } from "https://deno.land/x/fns@1.1.1/string/is-string.ts";
-export { isNumber } from "https://deno.land/x/fns@1.1.1/number/is-number.ts";
-export { swallow } from "https://deno.land/x/fns@1.1.1/fn/swallow.ts";
+export { s } from "https://deno.land/x/fns@1.3.1/string/s.ts";
+export { isString } from "https://deno.land/x/fns@1.3.1/string/is-string.ts";
+export { isNumber } from "https://deno.land/x/fns@1.3.1/number/is-number.ts";
+export { swallow } from "https://deno.land/x/fns@1.3.1/fn/swallow.ts";
 export {
   global,
   sequence,
   startWith,
   unicode,
-} from "https://deno.land/x/fns@1.1.1/string/regex.ts";
-export { prop } from "https://deno.land/x/fns@1.1.1/object/prop.ts";
+} from "https://deno.land/x/fns@1.3.1/string/regex.ts";
+export { prop } from "https://deno.land/x/fns@1.3.1/object/prop.ts";
 
 // x/fns@unstable
 export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";

@@ -1,4 +1,4 @@
-import { isNumber } from "https://deno.land/x/fns@1.1.1/number/is-number.ts";
+import { isNumber } from "../deps.ts";
 import { enforceType } from "../type-guard.ts";
 
 const VLAN_MIN = 1;
