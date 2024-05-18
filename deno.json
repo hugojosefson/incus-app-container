@@ -7,5 +7,9 @@
     "release": "deno task all && test -z \"$(git status --porcelain)\" && GITHUB_TOKEN=$(gh auth token) deno run --allow-env=GITHUB_TOKEN --allow-net=api.github.com --allow-run=bash https://deno.land/x/shipit@0.6.1/shipit.ts",
     "udd": "sh -c \"git ls-files -z | grep -zE '(\\.(mj|j|t)sx?|^deno.jsonc?)$' | xargs --null -- deno run --allow-read=. --allow-write=. --allow-net https://deno.land/x/udd@0.8.2/main.ts\""
   },
-  "lock": false
+  "lock": false,
+  "exclude": [
+    ".*",
+    "coverage"
+  ]
 }
