@@ -33,23 +33,21 @@ export type {
 } from "https://deno.land/x/run_simple@2.3.0/mod.ts";
 
 // x/fns
-export { s } from "https://deno.land/x/fns@1.3.1/string/s.ts";
-export { isString } from "https://deno.land/x/fns@1.3.1/string/is-string.ts";
-export { isNumber } from "https://deno.land/x/fns@1.3.1/number/is-number.ts";
-export { swallow } from "https://deno.land/x/fns@1.3.1/fn/swallow.ts";
+export { s } from "jsr:@hugojosefson/fns@1.3.1/string/s";
+export { isString } from "jsr:@hugojosefson/fns@1.3.1/string/is-string";
+export { isNumber } from "jsr:@hugojosefson/fns@1.3.1/number/is-number";
+export { swallow } from "jsr:@hugojosefson/fns@1.3.1/fn/swallow";
 export {
   global,
   sequence,
   startWith,
   unicode,
-} from "https://deno.land/x/fns@1.3.1/string/regex.ts";
-export { prop } from "https://deno.land/x/fns@1.3.1/object/prop.ts";
-
-// x/fns@unstable
-export { optional as optionalTypeGuard } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/type-guard/optional.ts";
-export { type Transformer } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/fn/transformer.ts";
-export { createDeepMapKeys } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/object/deep-map-keys.ts";
-export { fromAsyncIterator } from "https://raw.githubusercontent.com/hugojosefson/fns/unstable/array/from-async-iterator.ts";
+} from "jsr:@hugojosefson/fns@1.3.1/string/regex";
+export { prop } from "jsr:@hugojosefson/fns@1.3.1/object/prop";
+export { optional as optionalTypeGuard } from "jsr:@hugojosefson/fns@1.3.1/type-guard/optional";
+export { type Transformer } from "jsr:@hugojosefson/fns@1.3.1/fn/transformer";
+export { createDeepMapKeys } from "jsr:@hugojosefson/fns@1.3.1/object/deep-map-keys";
+export { fromAsyncIterator } from "jsr:@hugojosefson/fns@1.3.1/array/from-async-iterator";
 
 // npm
 export { default as split } from "npm:argv-split@2.0.1";
