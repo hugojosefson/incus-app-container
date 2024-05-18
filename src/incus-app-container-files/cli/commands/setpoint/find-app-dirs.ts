@@ -67,11 +67,25 @@ export async function* findAppDirs<
   AppsDir extends AbsolutePath,
 >(appsDir: AppsDir): AsyncGenerator<AbsolutePath> {
   if (await directoryHasAnyConfigFile(appsDir)) {
-    yield appsDir;
+    if (!isAbsolutePath(appsDir)) {
+      throw new Error(
+        `Expected absolute path for apps-dir, but got ${s(appsDir)}`,
+      );
+    }
+    yield appsDir as AbsolutePath;
     return;
   }
+
   for await (const entry of Deno.readDir(appsDir)) {
     if (!entry.isDirectory) {
+      continue;
+    }
+
+    if (entry.name === "appdata") {
+      continue;
+    }
+
+    if (entry.name.startsWith(".")) {
       continue;
     }
 
@@ -79,14 +93,13 @@ export async function* findAppDirs<
 
     if (await directoryHasAnyConfigFile(potentialAppDir)) {
       yield potentialAppDir;
-      return;
+      continue;
     }
-    if (entry.name === "appdata") {
-      return;
-    }
+
     if (await directoryHasAnyDockerComposeFile(potentialAppDir)) {
-      return;
+      continue;
     }
+
     yield* findAppDirs(potentialAppDir);
   }
 }
