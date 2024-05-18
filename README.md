@@ -43,20 +43,16 @@ that did a similar thing for Proxmox VE.
 - [x] The app container has a subdirectory `<appName>/appdata/` mounted as
       `/appdata` inside the container, so it can't reach its own configuration.
 - [ ] No scripts to run, just an always running container (or service?) that
-      watches the `apps/` directory for changes, and:
+      watches the `apps/` directory and `incus-app-container.yml` files for
+      changes, and:
   - [ ] creates+starts new incus app containers for each new subdirectory it
         finds with an `incus-app-container.yml` file,
-  - [ ] updates existing incus app containers when their
-        `incus-app-container.yml` changes,
-  - [ ] deletes incus app containers for subdirectories that are deleted,
-  - [ ] watches the directories and `incus-app-container.yml` files for changes
-  - [ ] when any `incus-app-container.yml` changes, or any directory changes:
-    - [ ] writes `incus-app-container.tf` to the apps' root directory
-  - [ ] watches the `incus-app-container.tf` file for changes
+  - [ ] relies on an `apps/incus-app-container.tf` file to be written such that
+        it dynamically creates/updates/deletes incus app container resources for
+        only each subdirectory it finds with an `incus-app-container.yml` file,
   - [ ] watches incus for changes with
         `incus monitor --type=lifecycle --type=operation --format=json`
-  - [ ] when `incus-app-container.tf` changes, or `incus monitor` reports
-        anything:
+  - [ ] when `incus monitor` reports anything:
     - [ ] `tofu apply -auto-approve -compact-warnings -concise`
 - [ ] The service keeps track of its own containers via OpenTofu's state, stored
       in `apps/incus-app-container.tfstate`.
