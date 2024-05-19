@@ -4,7 +4,8 @@ export const SUPPORTED_IMAGES = [
 ] as const;
 
 export type SupportedImage = typeof SUPPORTED_IMAGES[number];
-export type SupportedImageUri<I extends SupportedImage> = `images:${I}`;
+export type SupportedImageUri<I extends SupportedImage = SupportedImage> =
+  `images:${I}`;
 
 export function isSupportedImage(image: unknown): image is SupportedImage {
   return SUPPORTED_IMAGES.includes(image as SupportedImage);

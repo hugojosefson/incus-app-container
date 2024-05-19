@@ -1,13 +1,26 @@
 import { run, stringifyYaml } from "../../../deps.ts";
 import { StatusSpinnerResource } from "../../../status-spinner-resource.ts";
 import { AbsolutePath } from "../../absolute-path.ts";
-import { type BridgeName } from "../../bridge-name.ts";
 import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
 } from "../../incus-container-status.ts";
 import { toTemplateName } from "../../supported-image.ts";
-import { type Vlan } from "../../vlan.ts";
+import { createVlanEtcNetworkInterfacesD } from "../../vlan.ts";
+import {
+  CloudInitNetworkConfig,
+  createCloudInitNetworkConfig,
+} from "../../cloud-init-network-config.ts";
+import { CloudInitUserConfig } from "../../cloud-init-user-config.ts";
+import {
+  CloudInitVendorConfig,
+  createCloudInitVendorConfig,
+} from "../../cloud-init-vendor-config.ts";
+import {
+  createIncusContainerConfig,
+  IncusCliInstance,
+} from "./incus-cli-instance.ts";
+import { calculateNicParentName, calculateNicType, getNic } from "../../nic.ts";
 import { CreateAppContainerOptions } from "./options.ts";
 
 export type AppDir<Name extends string> = `${string | ""}/apps/${Name}`;
@@ -19,38 +32,16 @@ export type AppContainer<Name extends string> = {
   appDir: AppDir<Name>;
 };
 
-async function getNics(): Promise<string[][]> {
-  const netconf = await run(["ip", "netconf"]);
-  const nics = netconf.split("\n")
-    .map((line) => line.split(/\s+/));
-  return nics;
-}
-
-export async function getNic(name: string): Promise<string[] | undefined> {
-  return (await getNics())
-    .filter((nic) => nic[0] === "inet")
-    .find((nic) => nic[1] === name) ?? undefined;
-}
-
-export function getNicParentName(bridgeName: BridgeName, vlan?: Vlan): string {
-  return vlan ? `${bridgeName}.${vlan}` : bridgeName;
-}
-
-export function getNicType(vlan?: Vlan): string {
-  return vlan ? "macvlan" : "bridged";
-}
-
 export async function createAppContainer<
   AppsDir extends AbsolutePath,
   Name extends string,
 >(
-  name: Name,
-  options: CreateAppContainerOptions<AppsDir>,
+  options: CreateAppContainerOptions<AppsDir, Name>,
 ): Promise<AppContainer<Name>> {
-  const appDir = `${options.appsDir}/${name}` as AppDir<Name>;
+  const appDir = `${options.appsDir}/${options.name}` as AppDir<Name>;
   const appDataDir = `${appDir}/appdata` as AppDataDir<Name>;
   {
-    using spinner = new StatusSpinnerResource(name, {
+    using spinner = new StatusSpinnerResource(options.name, {
       pending: "Creating container...",
       done: "Created container.",
     });
@@ -58,8 +49,11 @@ export async function createAppContainer<
     spinner.currentStatus = "Restarting network to reload NIC:s...";
     await run("systemctl restart networking");
 
-    const nicParentName = getNicParentName(options.bridgeName, options.vlan);
-    const nicType = getNicType(options.vlan);
+    const nicParentName = calculateNicParentName(
+      options.bridgeName,
+      options.vlan,
+    );
+    const nicType = calculateNicType(options.vlan);
     spinner.currentStatus = `Checking NIC: ${nicParentName}`;
 
     const nicParent = await getNic(nicParentName);
@@ -73,11 +67,7 @@ export async function createAppContainer<
       spinner.currentStatus = `Creating vlan ${options.vlan}...`;
       await Deno.writeTextFile(
         `/etc/network/interfaces.d/${nicParentName}`,
-        `
-auto ${nicParentName}
-iface ${nicParentName} inet manual
-  vlan-raw-device ${getNicParentName(options.bridgeName, undefined)}
-  `,
+        createVlanEtcNetworkInterfacesD(options.bridgeName, options.vlan),
       );
       spinner.currentStatus =
         `Restarting network to activate vlan ${options.vlan}...`;
@@ -88,79 +78,36 @@ iface ${nicParentName} inet manual
     await run(["incus", "image", "info", options.imageUri as string]);
 
     spinner.currentStatus = "building cloud-init vendor config";
-    const vendorConfig = {
-      disable_root: false,
-      ssh_authorized_keys: options.sshKey,
-      ...(options.ip === "dhcp" ? {} : {
-        manage_resolv_conf: true,
-        resolv_conf: {
-          nameservers: [options.nameserver.address],
-        },
-      }),
-      power_state: {
-        mode: "poweroff",
-        timeout: 30,
-      },
-    };
+    const vendorConfig: CloudInitVendorConfig = createCloudInitVendorConfig(
+      options,
+    );
 
     spinner.currentStatus = "building cloud-init user config";
-    const userConfig = {};
+    const userConfig: CloudInitUserConfig = {};
 
     spinner.currentStatus = "building cloud-init network config";
-    const networkConfigYaml = stringifyYaml({
-      network: {
-        version: 2,
-        ethernets: {
-          eth0: options.ip === "dhcp"
-            ? {
-              dhcp4: true,
-              dhcp6: false,
-            }
-            : {
-              dhcp4: false,
-              dhcp6: false,
-              addresses: [options.ip.cidr],
-              routes: [{ to: "0.0.0.0/0", via: options.gateway.address }],
-              nameservers: { addresses: [options.nameserver.address] },
-            },
-        },
-      },
-    });
+    const networkConfig: CloudInitNetworkConfig = createCloudInitNetworkConfig(
+      options,
+    );
 
     spinner.currentStatus = "creating container";
+    const incusContainerConfig: IncusCliInstance = createIncusContainerConfig(
+      nicType,
+      nicParentName,
+      options,
+      userConfig,
+      vendorConfig,
+      networkConfig,
+    );
     await run([
       "incus",
       "create",
       "--no-profiles",
       "--storage=default",
       options.imageUri as string,
-      name,
+      options.name,
     ], {
-      stdin: stringifyYaml({
-        description: "By incus-app-container",
-        devices: {
-          eth0: {
-            name: "eth0",
-            type: "nic",
-            nictype: nicType,
-            parent: nicParentName,
-          },
-          root: {
-            path: "/",
-            pool: "default",
-          },
-        },
-        config: {
-          "security.idmap.isolated": true,
-          "security.idmap.base": options.idmapBase,
-          "security.idmap.size": options.idmapSize,
-          "security.nesting": true,
-          "cloud-init.user-data": "#cloud-config\n" + stringifyYaml(userConfig),
-          "cloud-init.vendor-data": "#cloud-config\n" +
-            stringifyYaml(vendorConfig),
-          "cloud-init.network-config": networkConfigYaml,
-        },
-      }),
+      stdin: stringifyYaml(incusContainerConfig),
     });
 
     spinner.currentStatus = "creating root disk";
@@ -169,7 +116,7 @@ iface ${nicParentName} inet manual
       "config",
       "device",
       "set",
-      name,
+      options.name,
       "root",
       `size=${options.diskSize}`,
     ]);
@@ -182,13 +129,13 @@ iface ${nicParentName} inet manual
       appDir,
     ]); // because Deno.chown is not recursive
     spinner.currentStatus =
-      `creating bind-mount from host:${appDataDir} to ${name}:/appdata`;
+      `creating bind-mount from host:${appDataDir} to ${options.name}:/appdata`;
     await run([
       "incus",
       "config",
       "device",
       "add",
-      name,
+      options.name,
       "appdata-bind-mount",
       "disk",
       `source=${appDataDir}`,
@@ -196,10 +143,10 @@ iface ${nicParentName} inet manual
     ]);
   }
   {
-    using _ = new StatusSpinnerResource(name, {
+    using _ = new StatusSpinnerResource(options.name, {
       pending: "Starting cloud-init...",
     });
-    await run(["incus", "start", name]);
+    await run(["incus", "start", options.name]);
   }
   await untilStatusCode(
     INCUS_CONTAINER_STATUS_CODES.Stopped,
@@ -210,14 +157,14 @@ iface ${nicParentName} inet manual
     },
   );
   {
-    using spinner = new StatusSpinnerResource(name, {
+    using spinner = new StatusSpinnerResource(options.name, {
       pending: "Running install script...",
       done: "Ran install script.",
     });
     spinner.currentStatus = `Fetching install script for ${options.imageUri}`;
-    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
-    await run(["incus", "start", name]);
-    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, name);
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, options.name);
+    await run(["incus", "start", options.name]);
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Running, options.name);
 
     spinner.currentStatus = `Pushing install script for ${options.imageUri}...`;
     await run([
@@ -235,7 +182,7 @@ iface ${nicParentName} inet manual
     await run([
       "incus",
       "exec",
-      name,
+      options.name,
       "--",
       "sh",
       "-c",
@@ -244,7 +191,7 @@ iface ${nicParentName} inet manual
     await run([
       "incus",
       "exec",
-      name,
+      options.name,
       "--",
       "sh",
       "-c",
@@ -257,19 +204,19 @@ iface ${nicParentName} inet manual
     await run([
       "incus",
       "exec",
-      name,
+      options.name,
       "--",
       toTemplateName(options.imageUri),
     ]);
 
     spinner.currentStatus =
       `Finished running install script for ${options.imageUri}. Stopping container...`;
-    await run(["incus", "stop", name]);
-    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, name);
+    await run(["incus", "stop", options.name]);
+    await untilStatusCode(INCUS_CONTAINER_STATUS_CODES.Stopped, options.name);
   }
 
   return {
-    name,
+    name: options.name,
     appDir,
   };
 }

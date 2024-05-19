@@ -1,5 +1,8 @@
 import { isNumber } from "../deps.ts";
 import { enforceType } from "../type-guard.ts";
+import { BridgeName } from "./bridge-name.ts";
+
+import { calculateNicParentName, NicParentName } from "./nic.ts";
 
 const VLAN_MIN = 1;
 const VLAN_MAX = 4094;
@@ -21,3 +24,21 @@ export const castAndEnforceVlan = (vlanString?: string | number) => {
   const vlan = isNumber(vlanString) ? vlanString : parseInt(vlanString, 10);
   return enforceVlan(vlan);
 };
+
+export function createVlanEtcNetworkInterfacesD<
+  BN extends BridgeName,
+  V extends undefined | Vlan,
+>(
+  bridgeName: BN,
+  vlan: V,
+): string {
+  const nicParentName: NicParentName<BN, V> = calculateNicParentName(
+    bridgeName,
+    vlan,
+  );
+  return `
+auto ${nicParentName}
+iface ${nicParentName} inet manual
+  vlan-raw-device ${bridgeName}
+  `;
+}

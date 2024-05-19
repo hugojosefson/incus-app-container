@@ -4,8 +4,8 @@ import { AbsolutePath, isAbsolutePath } from "./absolute-path.ts";
 import { DEFAULT_BRIDGE, isBridgeName } from "./bridge-name.ts";
 import { createAppContainer } from "./commands/create-app-container/mod.ts";
 import { resolveCreateAppContainerOptions } from "./commands/create-app-container/options.ts";
-import { isSize } from "./commands/create-app-container/size.ts";
-import { isSshKey } from "./commands/create-app-container/ssh-key.ts";
+import { isSize } from "./size.ts";
+import { isSshKey } from "./ssh-key.ts";
 import { listAppContainers } from "./commands/list-app-containers.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { setpoint } from "./commands/setpoint/mod.ts";
@@ -51,7 +51,17 @@ export async function createCli<
   );
 
   cli
-    .command("create <container_name>", "Create a new Incus app container.")
+    .command("create", "Create a new Incus app container.")
+    .option("--name <name>", {
+      description: "The container's name.",
+      cast: await enforceType(isString),
+      default: defaults?.create?.name ?? defaults.name,
+    })
+    .option("--description <description>", {
+      description: "The container's description.",
+      cast: await enforceType(optionalTypeGuard(isString)),
+      default: defaults?.create?.description ?? defaults.description,
+    })
     .option(
       "--ip <cidr>",
       {
@@ -126,14 +136,14 @@ export async function createCli<
       },
     )
     .action(
-      async (name: string, inputOptions) => {
+      async (inputOptions) => {
         const options = await resolveCreateAppContainerOptions(inputOptions);
-        const { appDir } = await createAppContainer(name, options);
+        const { appDir } = await createAppContainer(options);
         if (options.start) {
-          await run(["incus", "start", name]);
+          await run(["incus", "start", options.name]);
           await untilStatusCode(
             INCUS_CONTAINER_STATUS_CODES.Running,
-            name,
+            options.name,
             {
               pending: `Starting container, as requested...`,
               done: `Started container, as requested.`,

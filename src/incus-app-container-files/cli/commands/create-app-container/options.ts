@@ -8,12 +8,14 @@ import {
   toSupportedImageUri,
 } from "../../supported-image.ts";
 import { type Vlan } from "../../vlan.ts";
-import { firstIp } from "./cidr.ts";
-import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "./idmap.ts";
-import { Size } from "./size.ts";
-import { resolveSshKeys, SshKey, SshKeyRaw } from "./ssh-key.ts";
+import { firstIp } from "../../cidr.ts";
+import { getNextIdmapBaseFor, IDMAP_BASE_SIZE } from "../../idmap.ts";
+import { Size } from "../../size.ts";
+import { resolveSshKeys, SshKey, SshKeyRaw } from "../../ssh-key.ts";
 
 export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
+  name: string;
+  description?: string;
   ip: string;
   gateway?: string;
   nameserver?: string;
@@ -26,7 +28,10 @@ export type CreateAppContainerInputOptions<AppsDir extends AbsolutePath> = {
   image: SupportedImage;
 };
 
-export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
+export type CreateAppContainerOptions<
+  AppsDir extends AbsolutePath,
+  Name extends string,
+> =
   & (
     | { ip: "dhcp" }
     | {
@@ -36,6 +41,8 @@ export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
     }
   )
   & {
+    name: Name;
+    description?: string;
     sshKey: SshKeyRaw[];
     start: boolean;
     diskSize: Size;
@@ -49,13 +56,18 @@ export type CreateAppContainerOptions<AppsDir extends AbsolutePath> =
 
 export async function resolveCreateAppContainerOptions<
   AppsDir extends AbsolutePath,
-  R extends CreateAppContainerOptions<AppsDir> = CreateAppContainerOptions<
-    AppsDir
-  >,
+  Name extends string,
+  R extends CreateAppContainerOptions<AppsDir, Name> =
+    CreateAppContainerOptions<
+      AppsDir,
+      Name
+    >,
 >(
   input: CreateAppContainerInputOptions<AppsDir>,
 ): Promise<R> {
   const commonOptions: Partial<R> = {
+    name: input.name,
+    description: input.description,
     sshKey: await resolveSshKeys(input.sshKey),
     start: input.start,
     diskSize: input.diskSize,

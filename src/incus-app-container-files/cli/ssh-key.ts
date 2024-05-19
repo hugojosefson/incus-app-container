@@ -1,10 +1,7 @@
-import { isString, s } from "../../../deps.ts";
-import {
-  MultiArgument,
-  resolveMultiArgument,
-} from "../../../multi-argument.ts";
-import { getPasswdRowOfLocalUser } from "../../../passwd-row.ts";
-import { readTextFiles } from "../../../read-text-files.ts";
+import { isString, s } from "../deps.ts";
+import { MultiArgument, resolveMultiArgument } from "../multi-argument.ts";
+import { getPasswdRowOfLocalUser } from "../passwd-row.ts";
+import { readTextFiles } from "../read-text-files.ts";
 
 export type SshKeyUsernamePrefix = "gh" | "local";
 export type PrefixedUsername<Prefix extends SshKeyUsernamePrefix> =

@@ -1,4 +1,4 @@
-import { AbsolutePath } from "../../absolute-path.ts";
+import { AbsolutePath } from "./absolute-path.ts";
 
 export const IDMAP_BASE_MIN = 100_000;
 export const IDMAP_BASE_SIZE = 100_000;

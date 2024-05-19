@@ -1,5 +1,5 @@
 import { describe, it } from "./deps.ts";
-import { resolveSshKey } from "../src/incus-app-container-files/cli/commands/create-app-container/ssh-key.ts";
+import { resolveSshKey } from "../src/incus-app-container-files/cli/ssh-key.ts";
 
 describe("ssh-key", () => {
   describe("resolveSshKey", () => {
