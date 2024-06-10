@@ -19,6 +19,7 @@ export {
   DEFAULT_OPTIONS as DEFAULT_LOAD_CONFIG_FILES_OPTIONS,
   loadConfig,
 } from "https://deno.land/x/load_config_files@0.3.0/mod.ts";
+export { default as outdent } from "http://deno.land/x/outdent@v0.8.0/mod.ts";
 
 // x/cliffy
 export { Select } from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/select.ts";

@@ -1,4 +1,4 @@
-import { run } from "../../../deps.ts";
+import { outdent, run } from "../../../deps.ts";
 import { die } from "../../die.ts";
 
 export async function addZabblyRepo(): Promise<void> {
@@ -28,14 +28,15 @@ export async function addZabblyRepo(): Promise<void> {
   await Deno.mkdir("/etc/apt/sources.list.d", { recursive: true });
   await Deno.writeTextFile(
     "/etc/apt/sources.list.d/zabbly-incus-stable.sources",
-    `Enabled: yes
-Types: deb
-URIs: https://pkgs.zabbly.com/incus/stable
-Suites: ${VERSION_CODENAME}
-Components: main
-Architectures: ${architecture}
-Signed-By: /etc/apt/keyrings/zabbly.asc
-`,
+    outdent`
+      Enabled: yes
+      Types: deb
+      URIs: https://pkgs.zabbly.com/incus/stable
+      Suites: ${VERSION_CODENAME}
+      Components: main
+      Architectures: ${architecture}
+      Signed-By: /etc/apt/keyrings/zabbly.asc
+    `,
   );
 
   await run(["apt-get", "update"]);
