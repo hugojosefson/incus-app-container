@@ -17,7 +17,7 @@ export async function resolveValidValueMessage<T>(
   if (validValues instanceof Set) {
     return `one of: ${[...validValues].join(", ")}.`;
   }
-  if (Array.isArray(validValues)) {
+  if (Array.isArray(validValues) && validValues.length) {
     return `one of: ${validValues.join(", ")}.`;
   }
   return undefined;
