@@ -1,3 +1,4 @@
+import { NO_DEFAULT_VALUE } from "./cli/no-default-value.ts";
 import { ParseError } from "./deps.ts";
 import { AsyncGetterOr } from "./multi-argument.ts";
 
@@ -30,6 +31,9 @@ export async function enforceType<T>(
 ): Promise<(value: unknown) => T> {
   const validValueMessage = await resolveValidValueMessage(validValues);
   return (value: unknown): T => {
+    if (typeof value === "symbol" && value === NO_DEFAULT_VALUE) {
+      return undefined;
+    }
     if (!typeGuard(value)) {
       const message = `Invalid ${name}: ${value}.` +
         (validValueMessage ? `\nMust be ${validValueMessage}` : "");

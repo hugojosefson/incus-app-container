@@ -14,6 +14,7 @@ import {
   INCUS_CONTAINER_STATUS_CODES,
   untilStatusCode,
 } from "./incus-container-status.ts";
+import { NO_DEFAULT_VALUE } from "./no-default-value.ts";
 import {
   isOutputFormat,
   OUTPUT_FORMATS,
@@ -55,12 +56,13 @@ export async function createCli<
     .option("--name <name>", {
       description: "The container's name.",
       cast: await enforceType(isString),
-      default: defaults?.create?.name ?? defaults.name,
+      default: defaults?.create?.name ?? defaults.name ?? NO_DEFAULT_VALUE,
     })
     .option("--description <description>", {
       description: "The container's description.",
       cast: await enforceType(optionalTypeGuard(isString)),
-      default: defaults?.create?.description ?? defaults.description,
+      default: defaults?.create?.description ?? defaults.description ??
+        NO_DEFAULT_VALUE,
     })
     .option(
       "--ip <cidr>",
@@ -74,7 +76,8 @@ export async function createCli<
     .option("--image <image>", {
       description: "Image to use for the container.",
       cast: await enforceType(isSupportedImage, SUPPORTED_IMAGES, "image"),
-      default: defaults?.create?.image ?? defaults.image ?? SUPPORTED_IMAGES[0],
+      default: defaults?.create?.image ?? defaults.image ??
+        SUPPORTED_IMAGES[0] ?? NO_DEFAULT_VALUE,
     })
     .option(
       "--bridge-name <bridge-name>",
@@ -82,7 +85,7 @@ export async function createCli<
         description: "Name of the network bridge device.",
         cast: await enforceType(isBridgeName),
         default: defaults?.["create"]?.bridgeName ?? defaults.bridgeName ??
-          DEFAULT_BRIDGE,
+          DEFAULT_BRIDGE ?? NO_DEFAULT_VALUE,
       },
     )
     .option("--vlan <vlan>", {
@@ -90,7 +93,9 @@ export async function createCli<
       cast: castAndEnforceVlan,
       default: (
         (x?: number) => x === undefined ? undefined : `${x}`
-      )(castAndEnforceVlan(defaults?.create?.vlan ?? defaults.vlan)),
+      )(castAndEnforceVlan(
+        defaults?.create?.vlan ?? defaults.vlan ?? NO_DEFAULT_VALUE,
+      )),
     })
     .option(
       "--ssh-key <ssh-key>",
@@ -102,7 +107,8 @@ export async function createCli<
           "an actual ssh public key, or `gh:${username}` for importing from GitHub, or `local:${username}` for importing from local user.",
           "ssh-key",
         ),
-        default: defaults?.create?.sshKey ?? defaults.sshKey ?? undefined,
+        default: defaults?.create?.sshKey ?? defaults.sshKey ??
+          NO_DEFAULT_VALUE,
       },
     )
     .option(
@@ -192,7 +198,7 @@ export async function createCli<
         description: "Name of the network bridge device.",
         cast: await enforceType(isBridgeName),
         default: defaults?.["setup-incus"]?.bridgeName ?? defaults.bridgeName ??
-          DEFAULT_BRIDGE,
+          DEFAULT_BRIDGE ?? NO_DEFAULT_VALUE,
       },
     )
     .option(

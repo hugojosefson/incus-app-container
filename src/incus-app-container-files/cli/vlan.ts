@@ -3,6 +3,7 @@ import { enforceType } from "../type-guard.ts";
 import { BridgeName } from "./bridge-name.ts";
 
 import { calculateNicParentName, NicParentName } from "./nic.ts";
+import { NO_DEFAULT_VALUE } from "./no-default-value.ts";
 
 const VLAN_MIN = 1;
 const VLAN_MAX = 4094;
@@ -18,9 +19,12 @@ export const enforceVlan = await enforceType(
   `a number from ${VLAN_MIN} to ${VLAN_MAX}, or nothing for no VLAN`,
 );
 
-export const castAndEnforceVlan = (vlanString?: string | number) => {
+export const castAndEnforceVlan = (
+  vlanString?: string | number | typeof NO_DEFAULT_VALUE,
+) => {
   if (vlanString === undefined) return undefined;
   if (vlanString === "") return undefined;
+  if (vlanString === NO_DEFAULT_VALUE) return undefined;
   const vlan = isNumber(vlanString) ? vlanString : parseInt(vlanString, 10);
   return enforceVlan(vlan);
 };
