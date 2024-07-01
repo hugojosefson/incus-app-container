@@ -63,7 +63,7 @@ export { default as pMap } from "npm:p-map@7.0.2";
 export { default as pFilter } from "npm:p-filter@4.1.0";
 
 // npm ip-cidr
-export { type Address } from "npm:ip-cidr@4.0.0";
-import Cidr from "npm:ip-cidr@4.0.0";
+export { type Address } from "npm:ip-cidr@4.0.1";
+import Cidr from "npm:ip-cidr@4.0.1";
 export const { createAddress } = Cidr;
 export { Cidr };
