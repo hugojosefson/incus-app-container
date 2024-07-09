@@ -1,4 +1,4 @@
-import { isNumber } from "../../deps.ts";
+import { isNumber, outdent } from "../../deps.ts";
 import { enforceType } from "../../type-guard.ts";
 import { BridgeName } from "./bridge-name.ts";
 
@@ -16,18 +16,26 @@ export type Vlan = number;
 
 export const enforceVlan = await enforceType(
   isVlan,
-  `a number from ${VLAN_MIN} to ${VLAN_MAX}, or nothing for no VLAN`,
+  `a number from ${VLAN_MIN} to ${VLAN_MAX}`,
 );
 
 export const castAndEnforceVlan = (
-  vlanString?: string | number | typeof NO_DEFAULT_VALUE,
-) => {
-  if (vlanString === undefined) return undefined;
-  if (vlanString === "") return undefined;
-  if (vlanString === NO_DEFAULT_VALUE) return undefined;
-  const vlan = isNumber(vlanString) ? vlanString : parseInt(vlanString, 10);
+  vlanString?: unknown,
+): Vlan => {
+  if (typeof vlanString === "symbol" && vlanString === NO_DEFAULT_VALUE) {
+    return undefined!;
+  }
+  const vlan = parseInt(`${vlanString}`, 10);
   return enforceVlan(vlan);
 };
+
+export type VlanEtcNetworkInterfacesDContent<
+  BN extends BridgeName,
+  V extends undefined | Vlan,
+> = `auto ${NicParentName<BN, V>}
+iface ${NicParentName<BN, V>} inet manual
+  vlan-raw-device ${BN}
+`;
 
 export function createVlanEtcNetworkInterfacesD<
   BN extends BridgeName,
@@ -35,14 +43,14 @@ export function createVlanEtcNetworkInterfacesD<
 >(
   bridgeName: BN,
   vlan: V,
-): string {
+): VlanEtcNetworkInterfacesDContent<BN, V> {
   const nicParentName: NicParentName<BN, V> = calculateNicParentName(
     bridgeName,
     vlan,
   );
-  return `
-auto ${nicParentName}
-iface ${nicParentName} inet manual
-  vlan-raw-device ${bridgeName}
-  `;
+  return (outdent`
+    auto ${nicParentName}
+    iface ${nicParentName} inet manual
+      vlan-raw-device ${bridgeName}
+  ` + "\n") as VlanEtcNetworkInterfacesDContent<BN, V>;
 }

@@ -4,14 +4,17 @@ import { AbsolutePath, isAbsolutePath } from "./things/absolute-path.ts";
 import { DEFAULT_BRIDGE, isBridgeName } from "./things/bridge-name.ts";
 import { setupIncus } from "./commands/setup-incus/mod.ts";
 import { setpoint } from "./commands/setpoint/mod.ts";
+import { ensureVlan } from "./commands/ensure-vlan/mod.ts";
 import { Config } from "./config.ts";
 import { NO_DEFAULT_VALUE } from "./things/no-default-value.ts";
+import { castAndEnforceVlan } from "./things/vlan.ts";
 
 export const COMMAND_NAMES = [
   "create",
   "list",
   "setup-incus",
   "setpoint",
+  "ensure-vlan",
 ] as const;
 export type CommandName = typeof COMMAND_NAMES[number];
 
@@ -96,6 +99,46 @@ export async function createCli<
         appsDir: isAbsolutePath(options.appsDir) ? options.appsDir : "/srv",
       })
     );
+
+  cli
+    .command(
+      "ensure-vlan",
+      "Ensure that the VLAN is created and activated.",
+    )
+    .option(
+      "--bridge-name <bridge-name>",
+      {
+        description: "Name of the network bridge device.",
+        cast: await enforceType(isBridgeName),
+        default: NO_DEFAULT_VALUE as unknown as string,
+      },
+    )
+    .option(
+      "--vlan <vlan>",
+      {
+        description: "The VLAN ID to create.",
+        cast: castAndEnforceVlan,
+        default: NO_DEFAULT_VALUE as unknown as string,
+      },
+    )
+    .option(
+      "--file <file>",
+      {
+        description:
+          "Path to the /etc/network/interfaces.d/* file to write to.",
+        cast: await enforceType(isAbsolutePath),
+        default: NO_DEFAULT_VALUE as unknown as string,
+      },
+    )
+    .option(
+      "--dry-run",
+      {
+        description: "Do not actually write to any file, or make any changes.",
+        cast: Boolean,
+        default: defaults?.["ensure-vlan"]?.dryRun ?? defaults.dryRun ?? false,
+      },
+    )
+    .action(ensureVlan);
 
   return cli;
 }
