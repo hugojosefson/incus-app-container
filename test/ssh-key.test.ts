@@ -1,4 +1,4 @@
-import { describe, it } from "./deps.ts";
+import { describe, it } from "@std/testing/bdd";
 import { resolveSshKey } from "../src/incus-app-container-files/cli/things/ssh-key.ts";
 
 describe("ssh-key", () => {

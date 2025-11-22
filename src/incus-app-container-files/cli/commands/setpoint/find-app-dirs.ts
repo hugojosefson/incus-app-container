@@ -1,12 +1,10 @@
-import {
-  DEFAULT_CONFIG_FILE_LOADERS,
-  exists,
-  pFilter,
-  s,
-} from "../../../deps.ts";
+import { DEFAULT_FILE_LOADERS } from "load-config-files";
+import { exists } from "@std/fs";
+import { default as pFilter } from "p-filter";
+import { s } from "@hugojosefson/fns/string/s";
 import { AbsolutePath, isAbsolutePath } from "../../things/absolute-path.ts";
 
-const CONFIG_FILE_EXTENSIONS = Object.keys(DEFAULT_CONFIG_FILE_LOADERS);
+const CONFIG_FILE_EXTENSIONS = Object.keys(DEFAULT_FILE_LOADERS);
 
 function getPossibleConfigFilePaths(
   directory: AbsolutePath,

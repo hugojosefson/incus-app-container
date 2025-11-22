@@ -1,4 +1,4 @@
-import { run } from "../../../deps.ts";
+import { run } from "@hugojosefson/run-simple";
 
 export async function getIncusPreseed(
   poolDisk: string,

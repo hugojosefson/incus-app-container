@@ -1,5 +1,5 @@
 import { NO_DEFAULT_VALUE } from "./cli/things/no-default-value.ts";
-import { ParseError } from "./deps.ts";
+import { ParseError } from "breadc";
 import { AsyncGetterOr } from "./multi-argument.ts";
 
 export type ValidValues<T> = AsyncGetterOr<Readonly<T[] | Set<T> | string>>;

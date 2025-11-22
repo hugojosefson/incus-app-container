@@ -8,7 +8,8 @@
  */
 import { Config, getConfig } from "./config.ts";
 import { createCli } from "./create-cli.ts";
-import { CommandFailureError, ParseError } from "../deps.ts";
+import { CommandFailureError } from "@hugojosefson/run-simple";
+import { ParseError } from "breadc";
 
 function getConsoleWidthOrDefault(defaultWidth = 80): number {
   try {

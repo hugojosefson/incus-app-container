@@ -1,11 +1,11 @@
+import type { Address, Cidr } from "../../things/cidr.ts";
+import { createAddress } from "../../things/cidr.ts";
+import IPCIDR from "ip-cidr";
 import {
-  Address,
-  Cidr,
-  createAddress,
-  DEFAULT_LOAD_CONFIG_FILES_OPTIONS,
-  fromAsyncIterator,
+  DEFAULT_OPTIONS as DEFAULT_LOAD_CONFIG_FILES_OPTIONS,
   loadConfig,
-} from "../../../deps.ts";
+} from "load-config-files";
+import { fromAsyncIterator } from "@hugojosefson/fns/array/from-async-iterator";
 import { MultiArgument } from "../../../multi-argument.ts";
 import { AbsolutePath } from "../../things/absolute-path.ts";
 import { BridgeName } from "../../things/bridge-name.ts";
@@ -115,7 +115,7 @@ export async function resolveCreateAppContainerOptions<
     } as R;
   }
 
-  const cidr = new Cidr(input.ip);
+  const cidr = new IPCIDR(input.ip);
   const gateway = input.gateway ? createAddress(input.gateway) : firstIp(cidr);
   const nameserver = input.nameserver
     ? createAddress(input.nameserver)

@@ -1,4 +1,4 @@
-import { mapValues } from "../deps.ts";
+import { mapValues } from "@std/collections";
 import { isOnOff, parseOnOff } from "./on-off.ts";
 
 export function parsePart<T>(input: unknown): T {

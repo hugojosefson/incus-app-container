@@ -1,4 +1,5 @@
-import { isString, s } from "../../deps.ts";
+import { isString } from "@hugojosefson/fns/string/is-string";
+import { s } from "@hugojosefson/fns/string/s";
 import { MultiArgument, resolveMultiArgument } from "../../multi-argument.ts";
 import { getPasswdRowOfLocalUser } from "../../passwd-row.ts";
 import { readTextFiles } from "../../read-text-files.ts";

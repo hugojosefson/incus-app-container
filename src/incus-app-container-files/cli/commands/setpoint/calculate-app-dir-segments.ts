@@ -1,5 +1,5 @@
 import { AbsolutePath } from "../../things/absolute-path.ts";
-import { s } from "../../../deps.ts";
+import { s } from "@hugojosefson/fns/string/s";
 
 export function calculateAppDirSegments<AppsDir extends AbsolutePath>(
   appsDir: AppsDir,

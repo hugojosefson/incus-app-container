@@ -1,4 +1,5 @@
-import { isNumber, outdent } from "../../deps.ts";
+import { isNumber } from "@hugojosefson/fns/number/is-number";
+import { dedent } from "@std/text/unstable-dedent";
 import { enforceType } from "../../type-guard.ts";
 import { BridgeName } from "./bridge-name.ts";
 
@@ -48,7 +49,7 @@ export function createVlanEtcNetworkInterfacesD<
     bridgeName,
     vlan,
   );
-  return (outdent`
+  return (dedent`
     auto ${nicParentName}
     iface ${nicParentName} inet manual
       vlan-raw-device ${bridgeName}

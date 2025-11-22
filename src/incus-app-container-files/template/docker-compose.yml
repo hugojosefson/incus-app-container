@@ -3,7 +3,7 @@ services:
     image: docker.io/traefik/whoami
     environment:
       - PORT=80
-    ports: [ "80:80" ]
+    ports: ["80:80"]
     labels:
       - io.containers.autoupdate=registry
 #   volumes:

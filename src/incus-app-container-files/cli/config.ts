@@ -2,8 +2,9 @@ import { AbsolutePath } from "./things/absolute-path.ts";
 
 import { SetupIncusOptions } from "./commands/setup-incus/mod.ts";
 import { CommandName } from "./create-cli.ts";
-import { createDeepMapKeys } from "../deps.ts";
-import { camelCase, parseToml } from "../deps.ts";
+import { createDeepMapKeys } from "@hugojosefson/fns/object/deep-map-keys";
+import { toCamelCase } from "@std/text";
+import { parse as parseToml } from "@std/toml";
 import { BridgeName } from "./things/bridge-name.ts";
 import { Vlan } from "./things/vlan.ts";
 
@@ -57,4 +58,4 @@ export async function getConfig<
 /**
  * Converts all keys in a deep map to camelCase.
  */
-export const camelCaseKeys = createDeepMapKeys(camelCase);
+export const camelCaseKeys = createDeepMapKeys(toCamelCase);

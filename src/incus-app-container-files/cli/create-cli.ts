@@ -1,4 +1,5 @@
-import { breadc, isString } from "../deps.ts";
+import { breadc } from "breadc";
+import { isString } from "@hugojosefson/fns/string/is-string";
 import { enforceType } from "../type-guard.ts";
 import { AbsolutePath, isAbsolutePath } from "./things/absolute-path.ts";
 import { DEFAULT_BRIDGE, isBridgeName } from "./things/bridge-name.ts";

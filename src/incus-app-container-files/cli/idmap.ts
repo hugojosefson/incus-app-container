@@ -1,4 +1,4 @@
-import { isNumber } from "../deps.ts";
+import { isNumber } from "@hugojosefson/fns/number/is-number";
 import { AbsolutePath } from "./things/absolute-path.ts";
 
 export const IDMAP_BASE_MIN = 100_000;

@@ -1,4 +1,6 @@
-import { run, s, swallow } from "../../../deps.ts";
+import { run } from "@hugojosefson/run-simple";
+import { s } from "@hugojosefson/fns/string/s";
+import { swallow } from "@hugojosefson/fns/fn/swallow";
 import { EnsureVlanInputOptions } from "../../config.ts";
 import { BridgeName } from "../../things/bridge-name.ts";
 import {

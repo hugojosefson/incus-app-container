@@ -1,6 +1,6 @@
-import { assertEquals } from "../../../../../test/deps.ts";
+import { assertEquals } from "@std/assert";
 import { calculateAppDirSegments } from "./calculate-app-dir-segments.ts";
-import { s } from "../../../deps.ts";
+import { s } from "@hugojosefson/fns/string/s";
 import { AbsolutePath } from "../../things/absolute-path.ts";
 
 const cases = [

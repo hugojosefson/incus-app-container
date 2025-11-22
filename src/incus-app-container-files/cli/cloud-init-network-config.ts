@@ -1,4 +1,7 @@
-import { Address, Cidr } from "../deps.ts";
+import type IPCIDR from "ip-cidr";
+import type { Address } from "./things/cidr.ts";
+
+type Cidr = IPCIDR;
 import { AbsolutePath } from "./things/absolute-path.ts";
 
 import { CreateAppContainerOptions } from "./commands/setpoint/calculate-setpoint.ts";

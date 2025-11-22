@@ -1,4 +1,5 @@
-import { outdent, stringifyYaml } from "../../../deps.ts";
+import { dedent } from "@std/text/unstable-dedent";
+import { stringify } from "@std/yaml";
 import { AbsolutePath } from "../../things/absolute-path.ts";
 import { BridgeName } from "../../things/bridge-name.ts";
 import {
@@ -91,7 +92,7 @@ export function calculateTofuIncusInstance<
   const networkMotdFile: TofuIncusFile = {
     target_path: "/etc/update-motd.d/80-network",
     mode: "0755",
-    content: outdent`
+    content: dedent`
       #!/bin/sh
       set -e
       echo "----------------------------------------------------------------------"
@@ -102,7 +103,7 @@ export function calculateTofuIncusInstance<
   const onFirstBootFile: TofuIncusFile = {
     target_path: "/usr/bin/on-first-boot",
     mode: "0755",
-    content: outdent`
+    content: dedent`
       #!/usr/bin/env bash
       set -euo pipefail
       IFS=$'\\n\\t'
@@ -135,7 +136,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/usr/bin/docker-compose-service-wait-for-docker-engine",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         #!/usr/bin/env bash
         set -euo pipefail
         IFS=$'\\n\\t'
@@ -164,7 +165,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/usr/bin/docker-compose-service-stop",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         #!/usr/bin/env bash
         set -euo pipefail
         IFS=$'\\n\\t'
@@ -186,7 +187,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/usr/bin/docker-compose-watchdog",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         #!/bin/sh
         set -e
 
@@ -271,7 +272,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/usr/bin/docker-compose-reload",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         #!/bin/sh
         set -e
 
@@ -323,7 +324,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/etc/systemd/system/on-first-boot.service",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         [Unit]
         Description=Run on first boot
         Before=systemd-user-sessions.service
@@ -344,7 +345,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/etc/systemd/system/docker-compose.service",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         [Unit]
         Description=Docker Compose Application Service
         After=podman.socket
@@ -367,7 +368,7 @@ export function calculateTofuIncusInstance<
     {
       target_path: "/etc/systemd/system/docker-compose-watchdog.service",
       mode: "0755",
-      content: outdent`
+      content: dedent`
         [Unit]
         Description=Keeps an instance of docker-compose-watchdog running
 
@@ -414,10 +415,10 @@ export function calculateTofuIncusInstance<
       "security.idmap.base": options.idmapBase,
       "security.idmap.size": options.idmapSize,
       "security.nesting": true,
-      "cloud-init.user-data": "#cloud-config\n" + stringifyYaml(userConfig),
+      "cloud-init.user-data": "#cloud-config\n" + stringify(userConfig),
       "cloud-init.vendor-data": "#cloud-config\n" +
-        stringifyYaml(vendorConfig),
-      "cloud-init.network-config": stringifyYaml(networkConfig),
+        stringify(vendorConfig),
+      "cloud-init.network-config": stringify(networkConfig),
     },
     files,
   };

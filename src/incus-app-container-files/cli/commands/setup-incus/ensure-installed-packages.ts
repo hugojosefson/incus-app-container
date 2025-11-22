@@ -1,4 +1,4 @@
-import { run } from "../../../deps.ts";
+import { run } from "@hugojosefson/run-simple";
 import { getNotYetInstalledPackages } from "./get-not-yet-installed-packages.ts";
 
 export async function ensureInstalledPackages(

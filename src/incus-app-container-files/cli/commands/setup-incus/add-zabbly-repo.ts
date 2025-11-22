@@ -1,4 +1,5 @@
-import { outdent, run } from "../../../deps.ts";
+import { dedent } from "@std/text/unstable-dedent";
+import { run } from "@hugojosefson/run-simple";
 import { die } from "../../die.ts";
 
 export async function addZabblyRepo(): Promise<void> {
@@ -28,7 +29,7 @@ export async function addZabblyRepo(): Promise<void> {
   await Deno.mkdir("/etc/apt/sources.list.d", { recursive: true });
   await Deno.writeTextFile(
     "/etc/apt/sources.list.d/zabbly-incus-stable.sources",
-    outdent`
+    dedent`
       Enabled: yes
       Types: deb
       URIs: https://pkgs.zabbly.com/incus/stable

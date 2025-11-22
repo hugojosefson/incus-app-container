@@ -1,4 +1,4 @@
-import { fetchFile } from "./deps.ts";
+import { fetch as fetchFile } from "file-fetch";
 
 export async function readFromUrl(url: string | URL): Promise<string> {
   const response: Response = await fetchFile(url);

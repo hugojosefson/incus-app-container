@@ -1,4 +1,4 @@
-import { run } from "../../../deps.ts";
+import { run } from "@hugojosefson/run-simple";
 import { die } from "../../die.ts";
 
 export async function isBlockDeviceAlreadyWiped(
@@ -7,7 +7,8 @@ export async function isBlockDeviceAlreadyWiped(
   try {
     const wipefsOutput = await run(["wipefs", "--no-act", "--all", poolDisk]);
     return !wipefsOutput.includes(poolDisk);
-  } catch (error) {
-    die(`wipefs failed with exit code ${error.output.code}.`);
+  } catch (error: unknown) {
+    const err = error as { output: { code: number } };
+    die(`wipefs failed with exit code ${err.output.code}.`);
   }
 }

@@ -1,4 +1,4 @@
-import { run } from "../../../deps.ts";
+import { run } from "@hugojosefson/run-simple";
 import { getIncusPreseed } from "./get-incus-preseed.ts";
 
 export async function configureIncus(

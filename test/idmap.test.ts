@@ -1,4 +1,5 @@
-import { assertEquals, describe, it } from "./deps.ts";
+import { describe, it } from "@std/testing/bdd";
+import { assertEquals } from "@std/assert";
 import { getNextIdmapBaseAbove } from "../src/incus-app-container-files/cli/idmap.ts";
 
 const cases = [
