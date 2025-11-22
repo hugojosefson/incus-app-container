@@ -1,3 +1,4 @@
+import { NO_DEFAULT_VALUE } from "./cli/things/no-default-value.ts";
 import { ParseError } from "./deps.ts";
 import { AsyncGetterOr } from "./multi-argument.ts";
 
@@ -17,7 +18,7 @@ export async function resolveValidValueMessage<T>(
   if (validValues instanceof Set) {
     return `one of: ${[...validValues].join(", ")}.`;
   }
-  if (Array.isArray(validValues)) {
+  if (Array.isArray(validValues) && validValues.length) {
     return `one of: ${validValues.join(", ")}.`;
   }
   return undefined;
@@ -30,6 +31,9 @@ export async function enforceType<T>(
 ): Promise<(value: unknown) => T> {
   const validValueMessage = await resolveValidValueMessage(validValues);
   return (value: unknown): T => {
+    if (typeof value === "symbol" && value === NO_DEFAULT_VALUE) {
+      return undefined as T;
+    }
     if (!typeGuard(value)) {
       const message = `Invalid ${name}: ${value}.` +
         (validValueMessage ? `\nMust be ${validValueMessage}` : "");

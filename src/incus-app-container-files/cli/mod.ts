@@ -10,13 +10,21 @@ import { Config, getConfig } from "./config.ts";
 import { createCli } from "./create-cli.ts";
 import { CommandFailureError, ParseError } from "../deps.ts";
 
+function getConsoleWidthOrDefault(defaultWidth = 80): number {
+  try {
+    return Deno.consoleSize().columns;
+  } catch (_e) {
+    return defaultWidth;
+  }
+}
+
 const config: Config = await getConfig();
 const cli = await createCli(config);
 try {
   await cli.run(Deno.args);
 } catch (e) {
   if (e instanceof ParseError) {
-    const hr = "-".repeat(Deno.consoleSize().columns);
+    const hr = "-".repeat(getConsoleWidthOrDefault());
     await cli.run(["--help"]);
     console.error(
       [

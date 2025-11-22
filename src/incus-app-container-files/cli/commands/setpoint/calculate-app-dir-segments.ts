@@ -1,4 +1,4 @@
-import { AbsolutePath } from "../../absolute-path.ts";
+import { AbsolutePath } from "../../things/absolute-path.ts";
 import { s } from "../../../deps.ts";
 
 export function calculateAppDirSegments<AppsDir extends AbsolutePath>(

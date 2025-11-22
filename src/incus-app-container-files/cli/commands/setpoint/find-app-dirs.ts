@@ -4,7 +4,7 @@ import {
   pFilter,
   s,
 } from "../../../deps.ts";
-import { AbsolutePath, isAbsolutePath } from "../../absolute-path.ts";
+import { AbsolutePath, isAbsolutePath } from "../../things/absolute-path.ts";
 
 const CONFIG_FILE_EXTENSIONS = Object.keys(DEFAULT_CONFIG_FILE_LOADERS);
 
@@ -76,31 +76,40 @@ export async function* findAppDirs<
     return;
   }
 
-  for await (const entry of Deno.readDir(appsDir)) {
-    if (!entry.isDirectory) {
-      continue;
+  try {
+    for await (
+      const entry of Deno.readDir(appsDir)
+    ) {
+      if (!entry.isDirectory) {
+        continue;
+      }
+
+      if (entry.name === "appdata") {
+        continue;
+      }
+
+      if (entry.name.startsWith(".")) {
+        continue;
+      }
+
+      const potentialAppDir = `${appsDir}/${entry.name}` as AbsolutePath;
+
+      if (await directoryHasAnyConfigFile(potentialAppDir)) {
+        yield potentialAppDir;
+        continue;
+      }
+
+      if (await directoryHasAnyDockerComposeFile(potentialAppDir)) {
+        continue;
+      }
+
+      yield* findAppDirs(potentialAppDir);
     }
-
-    if (entry.name === "appdata") {
-      continue;
+  } catch (e) {
+    if (e instanceof Deno.errors.NotFound) {
+      return;
     }
-
-    if (entry.name.startsWith(".")) {
-      continue;
-    }
-
-    const potentialAppDir = `${appsDir}/${entry.name}` as AbsolutePath;
-
-    if (await directoryHasAnyConfigFile(potentialAppDir)) {
-      yield potentialAppDir;
-      continue;
-    }
-
-    if (await directoryHasAnyDockerComposeFile(potentialAppDir)) {
-      continue;
-    }
-
-    yield* findAppDirs(potentialAppDir);
+    throw e;
   }
 }
 

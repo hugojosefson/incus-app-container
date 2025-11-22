@@ -1,5 +1,5 @@
 import { assertEquals, describe, it } from "./deps.ts";
-import { getNextIdmapBaseAbove } from "../src/incus-app-container-files/cli/commands/create-app-container/idmap.ts";
+import { getNextIdmapBaseAbove } from "../src/incus-app-container-files/cli/idmap.ts";
 
 const cases = [
   [0, 100_000],

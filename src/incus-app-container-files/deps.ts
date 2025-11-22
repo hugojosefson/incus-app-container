@@ -19,6 +19,7 @@ export {
   DEFAULT_OPTIONS as DEFAULT_LOAD_CONFIG_FILES_OPTIONS,
   loadConfig,
 } from "https://deno.land/x/load_config_files@0.3.0/mod.ts";
+export { default as outdent } from "http://deno.land/x/outdent@v0.8.0/mod.ts";
 
 // x/cliffy
 export { Select } from "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/select.ts";
@@ -62,7 +63,8 @@ export { default as pMap } from "npm:p-map@7.0.2";
 export { default as pFilter } from "npm:p-filter@4.1.0";
 
 // npm ip-cidr
-export { type Address } from "npm:ip-cidr@4.0.0";
-import Cidr from "npm:ip-cidr@4.0.0";
-export const { createAddress } = Cidr;
-export { Cidr };
+import IPCIDR from "npm:ip-cidr@4.0.1";
+type Address = IPCIDR.Address;
+export { type Address };
+export const { createAddress, isValidAddress, isValidCIDR } = IPCIDR;
+export { IPCIDR as Cidr };

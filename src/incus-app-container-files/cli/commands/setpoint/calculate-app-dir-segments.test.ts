@@ -1,7 +1,7 @@
 import { assertEquals } from "../../../../../test/deps.ts";
 import { calculateAppDirSegments } from "./calculate-app-dir-segments.ts";
 import { s } from "../../../deps.ts";
-import { AbsolutePath } from "../../absolute-path.ts";
+import { AbsolutePath } from "../../things/absolute-path.ts";
 
 const cases = [
   ["/mnt/apps", "/mnt/apps/app1", ["app1"]],
