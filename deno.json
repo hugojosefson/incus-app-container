@@ -1,7 +1,6 @@
 {
   "tasks": {
-    "all": "deno fmt && deno lint && deno task check && deno task test && deno task coverage",
-    "check": "sh -c \"git ls-files -z | grep -zE '\\.(mj|j|t)sx?$' | xargs --null --max-args=1 -- deno check\"",
+    "all": "deno fmt && deno lint && deno check && deno task test && deno task coverage",
     "test": "deno test --allow-net --allow-env --coverage",
     "coverage": "deno coverage",
     "release": "deno task all && test -z \"$(git status --porcelain)\" && GITHUB_TOKEN=$(gh auth token) deno run --allow-env=GITHUB_TOKEN --allow-net=api.github.com --allow-run=bash https://deno.land/x/shipit@0.6.1/shipit.ts",

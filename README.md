@@ -25,7 +25,8 @@ that did a similar thing for Proxmox VE.
 
 ## Configuration
 
-Each app directory can contain an `incus-app-container.*` config file in one of these formats: `.toml`, `.yaml`, `.json`, `.ts`, or `.js`.
+Each app directory can contain an `incus-app-container.*` config file in one of
+these formats: `.toml`, `.yaml`, `.json`, `.ts`, or `.js`.
 
 ### Configuration options
 
@@ -53,9 +54,11 @@ Each app directory can contain an `incus-app-container.*` config file in one of 
 ### Container setup
 
 Each container includes:
+
 - Docker and Docker Compose pre-installed
 - `docker-compose.yml` template in `/appdata`
-- Systemd service that watches for `docker-compose.yml` changes and automatically reloads
+- Systemd service that watches for `docker-compose.yml` changes and
+  automatically reloads
 
 ## Prerequisites
 

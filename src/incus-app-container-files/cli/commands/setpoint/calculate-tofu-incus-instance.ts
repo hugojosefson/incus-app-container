@@ -113,7 +113,10 @@ export function calculateTofuIncusInstance<
       apt-get full-upgrade -y --purge --auto-remove
 
       # Install critical packages
-      apt-get install -y curl inotify-tools podman podman-docker bash
+      apt-get install -y curl inotify-tools bash
+      mkdir -p /etc/docker
+      echo '{"ip-forward-no-drop": true}' > /etc/docker/daemon.json
+      curl -fsSL https://get.docker.com | sh
 
       # Enable critical services
       systemctl daemon-reload
@@ -176,11 +179,11 @@ export function calculateTofuIncusInstance<
         ################################################################################
 
         if [[ ! -r "${dockerComposeFile}" ]]; then
-          /usr/bin/podman rm --all --force
+          /usr/bin/docker rm --all --force
           exit 0
         fi
 
-        /usr/bin/docker-compose --file "${dockerComposeFile}" down
+        /usr/bin/docker compose --file "${dockerComposeFile}" down
 
       `,
     },
@@ -297,7 +300,7 @@ export function calculateTofuIncusInstance<
         }
 
         is_docker_compose_file_ok() {
-          docker-compose -f "\${docker_compose_file}" config --quiet
+          docker compose -f "\${docker_compose_file}" config --quiet
         }
 
         main() {
@@ -348,16 +351,16 @@ export function calculateTofuIncusInstance<
       content: dedent`
         [Unit]
         Description=Docker Compose Application Service
-        After=podman.socket
-        Requires=podman.socket
+        After=docker.socket
+        Requires=docker.socket
 
         [Service]
         Environment=docker_compose_file=${dockerComposeFile}
         ExecStartPre=/usr/bin/docker-compose-service-wait-for-docker-engine
-        ExecStartPre=/usr/bin/docker-compose --file "\${docker_compose_file}" config --quiet
-        ExecReload=/usr/bin/docker-compose   --file "\${docker_compose_file}" config --quiet
-        ExecStart=/usr/bin/docker-compose    --file "\${docker_compose_file}" up --remove-orphans
-        ExecReload=/usr/bin/docker-compose   --file "\${docker_compose_file}" up --remove-orphans --detach
+        ExecStartPre=/usr/bin/docker compose --file "\${docker_compose_file}" config --quiet
+        ExecReload=/usr/bin/docker   compose --file "\${docker_compose_file}" config --quiet
+        ExecStart=/usr/bin/docker    compose --file "\${docker_compose_file}" up --remove-orphans
+        ExecReload=/usr/bin/docker   compose --file "\${docker_compose_file}" up --remove-orphans --detach
         ExecStop=/usr/bin/docker-compose-service-stop
         Restart=always
 
