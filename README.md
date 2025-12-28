@@ -2,9 +2,6 @@
 
 Opinionated script for creating Incus containers for apps.
 
-| 🚧️👷 Under construction 👷🚧️ |
-| ---------------------------- |
-
 I see this as a successor to my
 [proxmox-create-docker-ct](https://github.com/hugojosefson/proxmox-create-docker-ct),
 that did a similar thing for Proxmox VE.
@@ -18,9 +15,9 @@ that did a similar thing for Proxmox VE.
   updated
 - Containers can use static IP or DHCP networking
 - CLI commands for infrastructure management:
-  - `setup-incus` - Setup Incus on the host machine
-  - `setpoint` - Calculate desired container state from app configurations
-  - `ensure-vlan` - Manage VLAN interfaces
+  - `setup-incus` - Setup Incus on the host machine _(not tested recently)_
+  - `setpoint` - Calculate desired container state from app configurations _(works)_
+  - `ensure-vlan` - Manage VLAN interfaces _(works)_
 - Compatible with standard Incus tools and `incus-ui-canonical`
 
 ## Configuration
@@ -65,13 +62,16 @@ Each container includes:
 - A working server with one of
   - TrueNAS SCALE 23.10.2 or later, or
   - Debian 12.5 or later.
+- The server may be:
+  - a physical server, or
+  - a full VM with virtualization nesting.
 - `root` access on the server.
 - One empty block device for the storage pool.
 - An existing bridge network interface, for the containers to use, or a network
   interface in `/etc/network/interfaces` with `dhcp`, that we can convert.
 - A subnet or several, to expose the containers on.
 
-## Install incus-app-container
+## Install incus-app-container tool
 
 ```sh
 curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
@@ -84,6 +84,8 @@ curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
 
 Setup Incus on the host machine. Handles installation, storage pool
 configuration, and bridge network setup.
+
+> **NOTE** that I have not tested `setup-incus` in a good while. You may have better luck installing incus yourself, and using the output of `incus-app-container setup-incus --dry-run` as inspiration :)
 
 ```sh
 ./incus-app-container setup-incus --help
