@@ -1,4 +1,5 @@
 export const SUPPORTED_IMAGES = [
+  "debian/13/cloud",
   "debian/12/cloud",
   "ubuntu/24.04/cloud",
 ] as const;
