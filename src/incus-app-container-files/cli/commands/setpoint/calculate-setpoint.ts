@@ -10,7 +10,7 @@ import { MultiArgument } from "../../../multi-argument.ts";
 import { AbsolutePath } from "../../things/absolute-path.ts";
 import { BridgeName } from "../../things/bridge-name.ts";
 import { firstIp } from "../../things/cidr.ts";
-import { getIdmapBaseFor, IDMAP_BASE_SIZE } from "../../idmap.ts";
+import { getAllIdmapBases, IDMAP_BASE_SIZE } from "../../idmap.ts";
 import { Size } from "../../things/size.ts";
 import { resolveSshKeys, SshKey, SshKeyRaw } from "../../things/ssh-key.ts";
 import {
@@ -89,6 +89,7 @@ export async function resolveCreateAppContainerOptions<
     >,
 >(
   input: CreateAppContainerInputOptions<AppsDir>,
+  idmapBase: number,
 ): Promise<R> {
   const commonOptions: Partial<R> = {
     name: input.name,
@@ -97,7 +98,7 @@ export async function resolveCreateAppContainerOptions<
     running: input.running,
     diskSize: input.diskSize,
     appsDir: input.appsDir,
-    idmapBase: await getIdmapBaseFor(input.appsDir, input.appDir),
+    idmapBase,
     idmapSize: IDMAP_BASE_SIZE,
     vlan: input.vlan,
     bridgeName: input.bridgeName,
@@ -142,6 +143,10 @@ export async function calculateSetpoint<
   appsDir: AppsDir,
 ): Promise<Setpoint<AppsDir>> {
   const appDirs: AsyncIterableIterator<AbsolutePath> = findAppDirs(appsDir);
+
+  // Compute all idmap bases in one batch (stable + sequential fallback)
+  const idmapBases = await getAllIdmapBases(appsDir);
+
   const appsWithVlans: Record<string, [
     TofuIncusInstance,
     HostVlan<BridgeName, Vlan>[],
@@ -166,10 +171,13 @@ export async function calculateSetpoint<
           },
         ) as CreateAppContainerInputOptions<AppsDir>;
 
+        const idmapBase = idmapBases.get(
+          `${appsDir}/${name}` as `${AppsDir}/${string}`,
+        )!;
         const createAppContainerOptions: CreateAppContainerOptions<
           AppsDir,
           Name
-        > = await resolveCreateAppContainerOptions(config);
+        > = await resolveCreateAppContainerOptions(config, idmapBase);
 
         const [tofuIncusInstance, hostVlans]: [
           TofuIncusInstance,

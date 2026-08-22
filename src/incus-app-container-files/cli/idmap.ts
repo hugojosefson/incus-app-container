@@ -37,6 +37,59 @@ export async function getIdmapBaseFor<AppsDir extends AbsolutePath>(
 }
 
 /**
+ * Assign unique idmap bases for all app directories.
+ *
+ * First pass: directories with uid===gid>=IDMAP_BASE_MIN get that value (stable).
+ * Second pass: remaining directories get sequential ranges above the highest existing id.
+ *
+ * @param appsDir the parent directory containing all app directories
+ * @returns a Map of app directory paths to their assigned idmap base
+ */
+export async function getAllIdmapBases<AppsDir extends AbsolutePath>(
+  appsDir: AppsDir,
+): Promise<Map<`${AppsDir}/${string}`, number>> {
+  const results = new Map<`${AppsDir}/${string}`, number>();
+  let maxId = 0;
+
+  // First pass: collect stable bases and compute maxId
+  const dirEntries: {
+    name: string;
+    fullPath: `${AppsDir}/${string}`;
+    uid: number | null;
+    gid: number | null;
+  }[] = [];
+  for await (const entry of Deno.readDir(appsDir)) {
+    if (entry.isDirectory) {
+      const fullPath = `${appsDir}/${entry.name}` as `${AppsDir}/${string}`;
+      const { uid, gid } = await Deno.stat(fullPath);
+      dirEntries.push({ name: entry.name, fullPath, uid, gid });
+      maxId = Math.max(maxId, uid ?? 0, gid ?? 0);
+    }
+  }
+
+  // Second pass: assign stable bases
+  for (const dir of dirEntries) {
+    if (
+      isNumber(dir.uid) && dir.uid === dir.gid &&
+      dir.uid >= IDMAP_BASE_MIN
+    ) {
+      results.set(dir.fullPath, dir.uid);
+    }
+  }
+
+  // Third pass: assign sequential fallback bases
+  let nextBase = getNextIdmapBaseAbove(maxId);
+  for (const dir of dirEntries) {
+    if (!results.has(dir.fullPath)) {
+      results.set(dir.fullPath, nextBase);
+      nextBase = getNextIdmapBaseAbove(nextBase);
+    }
+  }
+
+  return results;
+}
+
+/**
  * choose the next even million that is at least {@link IDMAP_BASE_SIZE} larger than the existing
  * @param existingMaxId any existing maximum id
  * @returns the next even million that is at least {@link IDMAP_BASE_SIZE} larger than the existing
