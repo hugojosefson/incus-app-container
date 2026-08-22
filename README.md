@@ -16,7 +16,8 @@ that did a similar thing for Proxmox VE.
 - Containers can use static IP or DHCP networking
 - CLI commands for infrastructure management:
   - `setup-incus` - Setup Incus on the host machine _(not tested recently)_
-  - `setpoint` - Calculate desired container state from app configurations _(works)_
+  - `setpoint` - Calculate desired container state from app configurations
+    _(works)_
   - `ensure-vlan` - Manage VLAN interfaces _(works)_
 - Compatible with standard Incus tools and `incus-ui-canonical`
 
@@ -85,7 +86,9 @@ curl -sSfL https://github.com/hugojosefson/incus-app-container/tarball/main \
 Setup Incus on the host machine. Handles installation, storage pool
 configuration, and bridge network setup.
 
-> **NOTE** that I have not tested `setup-incus` in a good while. You may have better luck installing incus yourself, and using the output of `incus-app-container setup-incus --dry-run` as inspiration :)
+> **NOTE** that I have not tested `setup-incus` in a good while. You may have
+> better luck installing incus yourself, and using the output of
+> `incus-app-container setup-incus --dry-run` as inspiration :)
 
 ```sh
 ./incus-app-container setup-incus --help
