@@ -414,7 +414,9 @@ export function calculateTofuIncusInstance<
       },
     ],
     config: {
-      "security.idmap.isolated": true,
+      // Incus 7 rejects security.idmap.base together with an isolated
+      // idmap, so set the base and keep the map non-isolated.
+      "security.idmap.isolated": false,
       "security.idmap.base": options.idmapBase,
       "security.idmap.size": options.idmapSize,
       "security.nesting": true,
